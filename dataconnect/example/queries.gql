@@ -1,0 +1,34 @@
+mutation CreateTask @auth(level: USER) {
+  task_insert(data: {
+    title: "New Task",
+    description: "Task description",
+    dueDate: "2024-01-01",
+    priority: "High",
+    status: "In Progress"
+    userId_expr: "auth.uid"
+  })
+}
+
+query ListTasks @auth(level: USER) {
+  tasks(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    title
+    description
+    dueDate
+    priority
+    status
+  }
+}
+
+mutation UpdateTask($id: UUID!, $status: String!) @auth(level: USER) {
+  task_update(
+    id: $id,
+    data: {
+      status: $status
+    }
+  )
+}
+
+mutation DeleteTask($id: UUID!) @auth(level: USER) {
+  task_delete(id: $id)
+}
