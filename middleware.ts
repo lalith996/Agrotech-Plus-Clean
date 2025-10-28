@@ -21,40 +21,45 @@ export async function middleware(request: NextRequest) {
   
   // Rate limiting for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-    const now = Date.now()
-    const windowMs = 15 * 60 * 1000 // 15 minutes
-    const maxRequests = 1000 // requests per window
-    
-    let record = rateLimitStore.get(ip)
-    
-    if (!record || now > record.resetTime) {
-      record = { count: 0, resetTime: now + windowMs }
-      rateLimitStore.set(ip, record)
-    }
-    
-    record.count++
-    
-    // Set rate limit headers
-    response.headers.set('X-RateLimit-Limit', maxRequests.toString())
-    response.headers.set('X-RateLimit-Remaining', Math.max(0, maxRequests - record.count).toString())
-    response.headers.set('X-RateLimit-Reset', new Date(record.resetTime).toISOString())
-    
-    if (record.count > maxRequests) {
-      return new NextResponse(
-        JSON.stringify({
-          success: false,
-          message: 'Too many requests, please try again later',
-          retryAfter: Math.ceil((record.resetTime - now) / 1000)
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((record.resetTime - now) / 1000).toString()
+    try {
+      const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+      const now = Date.now()
+      const windowMs = 15 * 60 * 1000 // 15 minutes
+      const maxRequests = 100 // requests per window
+
+      let record = rateLimitStore.get(ip)
+
+      if (!record || now > record.resetTime) {
+        record = { count: 0, resetTime: now + windowMs }
+        rateLimitStore.set(ip, record)
+      }
+
+      record.count++
+
+      // Set rate limit headers
+      response.headers.set('X-RateLimit-Limit', maxRequests.toString())
+      response.headers.set('X-RateLimit-Remaining', Math.max(0, maxRequests - record.count).toString())
+      response.headers.set('X-RateLimit-Reset', new Date(record.resetTime).toISOString())
+
+      if (record.count > maxRequests) {
+        return new NextResponse(
+          JSON.stringify({
+            success: false,
+            message: 'Too many requests, please try again later',
+            retryAfter: Math.ceil((record.resetTime - now) / 1000)
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': Math.ceil((record.resetTime - now) / 1000).toString()
+            }
           }
-        }
-      )
+        )
+      }
+    } catch (err) {
+      // In production, never crash middleware; continue request
+      console.error('[Middleware] Rate limit error:', (err as Error)?.message)
     }
   }
   
