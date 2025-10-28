@@ -1,14 +1,20 @@
 /**
  * User Role Types
- * Extracted from Prisma schema for use in Edge runtime (middleware)
+ * Type-safe role definitions for use across the application
+ * Compatible with Prisma schema UserRole enum
  */
 
-export enum UserRole {
-  CUSTOMER = 'CUSTOMER',
-  FARMER = 'FARMER',
-  ADMIN = 'ADMIN',
-  OPERATIONS = 'OPERATIONS',
-  DRIVER = 'DRIVER'
-}
+// Define as const object for type safety in Edge runtime
+export const UserRole = {
+  CUSTOMER: 'CUSTOMER',
+  FARMER: 'FARMER',
+  ADMIN: 'ADMIN',
+  OPERATIONS: 'OPERATIONS',
+  DRIVER: 'DRIVER'
+} as const
 
-export type UserRoleType = UserRole | 'CUSTOMER' | 'FARMER' | 'ADMIN' | 'OPERATIONS' | 'DRIVER'
+// Type alias for UserRole values
+export type UserRole = typeof UserRole[keyof typeof UserRole]
+
+// For backward compatibility with Prisma imports
+export type UserRoleType = UserRole

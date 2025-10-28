@@ -9,7 +9,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect, ReactNode } from 'react'
-import { UserRole } from '@prisma/client'
+import { UserRole } from '@/lib/role-types'
 import { roleAccessControl } from '@/lib/role-access-control'
 import { Loader2 } from 'lucide-react'
 
