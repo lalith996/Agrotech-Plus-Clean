@@ -79,7 +79,7 @@ def load_or_generate_data() -> List[Dict[str, Any]]:
 def train_model() -> TrainResult:
     # Lazy import to avoid hard dependency at import-time
     try:
-        import xgboost as xgb  # type: ignore
+        import xgboost as xgb  # type: ignore[reportMissingTypeStubs]
     except Exception as e:
         raise RuntimeError("xgboost not installed; please enable in ml/requirements.txt and install deps") from e
 
@@ -88,8 +88,8 @@ def train_model() -> TrainResult:
     X = np.array([[float(r["base_price"]), float(grade_map.get(cast(str, r["quality_grade"]), 1)), float(r["stock_level"]), float(r["demand"]), float(r["competitor_avg"]) ] for r in rows], dtype=float)
     y = np.array([float(r["optimal_price"]) for r in rows], dtype=float)
 
-    model = xgb.XGBRegressor(max_depth=6, learning_rate=0.1, n_estimators=200, subsample=0.9, colsample_bytree=0.9, random_state=42)
-    model.fit(X, y)
+    model: Any = xgb.XGBRegressor(max_depth=6, learning_rate=0.1, n_estimators=200, subsample=0.9, colsample_bytree=0.9, random_state=42)  # type: ignore[reportUnknownMemberType]
+    model.fit(X, y)  # type: ignore[reportUnknownMemberType]
 
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     joblib.dump(model, MODEL_PATH)  # type: ignore[reportUnknownMemberType,reportMissingTypeStubs]

@@ -1,6 +1,9 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/stores/cart-store'
+import { Button } from '@/components/ui/button'
+import { ShoppingCart } from 'lucide-react'
+import { toast } from 'sonner'
 
 type Farmer = {
   id: string
@@ -58,6 +61,7 @@ export function ProductList({ products, isLoading, error, onOpenQuickView }: Pro
 
   const handleAdd = (product: Product) => {
     addToCart(product, 1)
+    toast.success(`${product.name} added to cart!`)
   }
 
   return (
@@ -72,13 +76,16 @@ export function ProductList({ products, isLoading, error, onOpenQuickView }: Pro
             <span>({product.numReviews})</span>
           </div>
           <div className="mt-3 flex gap-2">
-            <button
+            <Button
               onClick={(e) => { e.stopPropagation(); handleAdd(product) }}
               aria-label={`Add ${product.name} to cart`}
               disabled={!product.isActive}
+              className="rounded-full bg-[#00B207] hover:bg-[#00B207]/90 text-white"
+              size="sm"
             >
+              <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart
-            </button>
+            </Button>
             <button onClick={(e) => { e.stopPropagation(); onOpenQuickView?.(product) }} aria-label={`Quick view for ${product.name}`}>
               Quick View
             </button>

@@ -1,11 +1,8 @@
+# pyright: strict
 import os
 from typing import List, Dict, Any
 import numpy as np
 import pandas as pd
-from xgboost import XGBRegressor
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
 import pickle
 
 MODEL_PATH = os.getenv("SHELF_LIFE_XGB_MODEL_PATH", "ml/models/shelf_life_xgb.pkl")
@@ -46,14 +43,22 @@ def generate_synthetic(n: int = 1000) -> Dict[str, Any]:
     return {"X": X, "y": y}
 
 
-def build_pipeline() -> Pipeline:
+def build_pipeline() -> Any:
+    try:
+        from xgboost import XGBRegressor  # type: ignore[reportMissingTypeStubs]
+        from sklearn.preprocessing import OneHotEncoder  # type: ignore[reportMissingTypeStubs]
+        from sklearn.compose import ColumnTransformer  # type: ignore[reportMissingTypeStubs]
+        from sklearn.pipeline import Pipeline  # type: ignore[reportMissingTypeStubs]
+    except ImportError as e:
+        raise RuntimeError("Required ML libraries not installed; please enable in ml/requirements.txt and install deps") from e
+
     cat_features = ["quality_grade", "category"]
     num_features = ["age", "temperature", "humidity"]
-    pre = ColumnTransformer([
-        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_features),
+    pre: Any = ColumnTransformer([  # type: ignore[reportUnknownMemberType]
+        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_features),  # type: ignore[reportUnknownMemberType]
         ("num", "passthrough", num_features)
     ])
-    xgb = XGBRegressor(
+    xgb: Any = XGBRegressor(  # type: ignore[reportUnknownMemberType]
         n_estimators=200,
         max_depth=5,
         learning_rate=0.1,
@@ -62,20 +67,18 @@ def build_pipeline() -> Pipeline:
         random_state=123,
         objective="reg:squarederror"
     )
-    pipe = Pipeline([("pre", pre), ("xgb", xgb)])
+    pipe: Any = Pipeline([("pre", pre), ("xgb", xgb)])  # type: ignore[reportUnknownMemberType]
     return pipe
 
 
-def main():
+def main() -> None:
     data = generate_synthetic(1500)
     X: List[Dict[str, Any]] = data["X"]
     y: List[float] = data["y"]
     pipe = build_pipeline()
-    from typing import Any as _Any
-    pipe_t: _Any = pipe
     # Use DataFrame for ColumnTransformer
     X_df = pd.DataFrame(X)
-    pipe_t.fit(X_df, y)
+    pipe.fit(X_df, y)  # type: ignore[reportUnknownMemberType]
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     with open(MODEL_PATH, "wb") as f:
         pickle.dump({"pipeline": pipe}, f)
