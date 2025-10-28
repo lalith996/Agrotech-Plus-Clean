@@ -1,12 +1,11 @@
-import { Elements } from '@stripe/react-stripe-js';
-import { stripePromise } from '../lib/stripe';
 import CheckoutForm from '../components/checkout/checkout-form';
 
 const CheckoutPage = () => {
   return (
-    <Elements stripe={stripePromise}>
+    <div className="checkout-page">
+      <h1>Checkout</h1>
       <CheckoutForm />
-    </Elements>
+    </div>
   );
 };
 

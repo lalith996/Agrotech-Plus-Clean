@@ -1,49 +1,41 @@
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/router';
 
 const CheckoutForm = () => {
-  const stripe = useStripe();
-  const elements = useElements();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
+    setMessage('');
 
-    if (!stripe || !elements) {
-      return;
-    }
+    try {
+      // Simplified checkout without Stripe integration
+      // In a real implementation, you would process the payment here
+      console.log('[Checkout] Processing order:', {
+        email,
+        phone,
+        amount: 1000
+      });
 
-    const res = await fetch('/api/create-payment-intent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        amount: 1000, // Example amount
-        userEmail: email,
-        userPhone: phone,
-      }), 
-    });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const clientSecret = await res.text();
-
-    const cardElement = elements.getElement(CardElement);
-    
-    if (!cardElement) {
-      return;
-    }
-
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-      },
-    });
-
-    if (error) {
-      console.log('[error]', error);
-    } else {
-      console.log('[PaymentIntent]', paymentIntent);
+      setMessage('Order placed successfully! (Payment processing disabled in clean version)');
+      
+      // Redirect to order confirmation after 2 seconds
+      setTimeout(() => {
+        router.push('/order-confirmation');
+      }, 2000);
+    } catch (error) {
+      console.error('[Checkout Error]', error);
+      setMessage('Failed to process order. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,10 +55,21 @@ const CheckoutForm = () => {
         placeholder="Phone number"
         required
       />
-      <CardElement />
-      <button type="submit" disabled={!stripe}>
-        Pay
+      
+      {message && (
+        <div className={`message ${message.includes('success') ? 'success' : 'error'}`}>
+          {message}
+        </div>
+      )}
+      
+      <button type="submit" disabled={loading}>
+        {loading ? 'Processing...' : 'Place Order'}
       </button>
+      
+      <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '1rem' }}>
+        Note: Payment processing is disabled in this clean version. 
+        Orders will be logged to console.
+      </p>
     </form>
   );
 };
