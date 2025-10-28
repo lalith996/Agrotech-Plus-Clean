@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { roleAccessControl } from './lib/role-access-control'
-import { UserRole } from './lib/role-types'
 
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
@@ -145,75 +143,28 @@ export async function middleware(request: NextRequest) {
   
   // Skip auth check for public paths or public GET API endpoints
   if (!isPublicPath && !isPublicApiGet) {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
-    })
-    
-    // Respond 401 for API requests; redirect for pages
-    if (!token) {
-      if (pathname.startsWith('/api/')) {
-        return new NextResponse(
-          JSON.stringify({ success: false, message: 'Unauthorized' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        )
+    try {
+      const token = await getToken({ 
+        req: request, 
+        secret: process.env.NEXTAUTH_SECRET 
+      })
+      
+      // Respond 401 for API requests; redirect for pages
+      if (!token) {
+        if (pathname.startsWith('/api/')) {
+          return new NextResponse(
+            JSON.stringify({ success: false, message: 'Unauthorized' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } }
+          )
+        }
+        const loginUrl = new URL('/auth/signin', request.url)
+        loginUrl.searchParams.set('callbackUrl', request.url)
+        return NextResponse.redirect(loginUrl)
       }
-      const loginUrl = new URL('/auth/signin', request.url)
-      loginUrl.searchParams.set('callbackUrl', request.url)
-      
-      // Log unauthorized access attempt
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[Middleware] Unauthorized access attempt to ${pathname}`)
-      }
-      
-      return NextResponse.redirect(loginUrl)
-    }
-    
-    // Role-based access control
-    const userRole = token.role as UserRole
-    
-    if (!userRole) {
-      if (pathname.startsWith('/api/')) {
-        return new NextResponse(
-          JSON.stringify({ success: false, message: 'Unauthorized: missing role' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        )
-      }
-      // If role is missing, redirect to sign-in
-      const loginUrl = new URL('/auth/signin', request.url)
-      loginUrl.searchParams.set('callbackUrl', request.url)
-      
-      console.error(`[Middleware] Missing role for user ${token.email}`)
-      
-      return NextResponse.redirect(loginUrl)
-    }
-    
-    // Check if user's role can access this route
-    const canAccess = roleAccessControl.canAccessRoute(userRole, pathname)
-    
-    if (!canAccess) {
-      if (pathname.startsWith('/api/')) {
-        return new NextResponse(
-          JSON.stringify({ success: false, message: 'Forbidden' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
-        )
-      }
-      // Get the appropriate dashboard for the user's role
-      const dashboardPath = roleAccessControl.getDashboardPath(userRole)
-      
-      // Log unauthorized access attempt
-      console.warn(
-        `[Middleware] Role-based access denied: ${userRole} attempted to access ${pathname}`
-      )
-      
-      // Redirect to role-specific dashboard
-      const redirectUrl = new URL(dashboardPath, request.url)
-      return NextResponse.redirect(redirectUrl)
-    }
-    
-    // Log successful authorization in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Middleware] Authorized: ${userRole} accessing ${pathname}`)
+    } catch (error) {
+      // If token verification fails, allow the request through
+      // The API routes will handle auth themselves
+      console.error('[Middleware] Token verification error:', error)
     }
   }
   
