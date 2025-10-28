@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { addressSchema } from "@/lib/validations"
 import { UserRole } from "@prisma/client"
-import { geocodeAddress } from "@/lib/geocode";
 
 export default async function handler(
   req: NextApiRequest,
@@ -47,10 +46,16 @@ export default async function handler(
         customerId: customer.id,
       })
 
-      const coordinates = await geocodeAddress(validatedData);
+      // Geocoding removed - Google Maps API not available in clean version
+      // Coordinates can be added manually or via a different service
+      console.log('[Address] Creating address without geocoding:', {
+        street: validatedData.street,
+        city: validatedData.city
+      });
+
       const dataWithCoords = {
         ...validatedData,
-        ...(coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : {}),
+        // Coordinates would be added here if geocoding was enabled
       };
 
       // If setting as default, unset other defaults
@@ -95,10 +100,15 @@ export default async function handler(
         customerId: customer.id,
       })
 
-      const coordinates = await geocodeAddress(validatedData);
+      // Geocoding removed - Google Maps API not available in clean version
+      console.log('[Address] Updating address without geocoding:', {
+        addressId: id,
+        city: validatedData.city
+      });
+
       const dataWithCoords = {
         ...validatedData,
-        ...(coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : {}),
+        // Coordinates would be updated here if geocoding was enabled
       };
 
       // If setting as default, unset other defaults
