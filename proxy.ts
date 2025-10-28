@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   try {
     // Skip middleware for static files, API routes, and Next.js internals
     const { pathname } = request.nextUrl
@@ -29,7 +29,7 @@ export function middleware(request: NextRequest) {
     
   } catch (error) {
     // If anything fails, just continue without middleware
-    console.error('Middleware error:', error)
+    console.error('Proxy error:', error)
     return NextResponse.next()
   }
 }
