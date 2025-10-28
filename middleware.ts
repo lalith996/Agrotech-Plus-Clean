@@ -254,13 +254,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 }
-
-// Cleanup function for rate limit store
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, record] of Array.from(rateLimitStore.entries())) {
-    if (now > record.resetTime) {
-      rateLimitStore.delete(key)
-    }
-  }
-}, 5 * 60 * 1000) // Cleanup every 5 minutes
