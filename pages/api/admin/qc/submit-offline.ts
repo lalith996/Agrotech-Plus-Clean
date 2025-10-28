@@ -2,9 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db-optimization';
-import { FileUploadService } from '@/lib/file-upload';
 import multer from 'multer';
 import { promisify } from 'util';
+
+// File upload disabled - AWS S3 removed in clean version
 
 // Configure multer for memory storage
 const upload = multer({
