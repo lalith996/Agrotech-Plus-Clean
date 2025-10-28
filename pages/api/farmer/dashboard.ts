@@ -28,231 +28,191 @@ export default async function handler(
         return res.status(404).json({ message: "Farmer profile not found" })
       }
 
-      // Get current date for monthly calculations
+      // Check approval status
+      if (!farmer.isApproved) {
+        return res.status(200).json({
+          isApproved: false,
+          message: "Your farmer account is pending approval. You will receive an email once approved."
+        })
+      }
+
+      // Get current date for calculations
       const now = new Date()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-      // Fetch dashboard statistics
-      const [
-        totalProducts,
-        activeProducts,
-        totalDeliveries,
-        pendingDeliveries,
-        upcomingDeliveries,
-        recentQCResults,
-        monthlyOrders,
-        allOrderItems,
-        recentOrders,
-        products
-      ] = await Promise.all([
-        // Total products
-        prisma.product.count({
-          where: { farmerId: farmer.id }
-        }),
-        
-        // Active products
-        prisma.product.count({
-          where: { farmerId: farmer.id, isActive: true }
-        }),
-        
-        // Total deliveries
-        prisma.farmerDelivery.count({
-          where: { farmerId: farmer.id }
-        }),
-        
-        // Pending deliveries
-        prisma.farmerDelivery.count({
-          where: { 
-            farmerId: farmer.id,
-            status: "scheduled",
-            deliveryDate: { gte: now }
+      // Fetch upcoming deliveries (next 7 days)
+      const upcomingDeliveries = await prisma.farmerDelivery.findMany({
+        where: {
+          farmerId: farmer.id,
+          deliveryDate: {
+            gte: now,
+            lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
           }
-        }),
-        
-        // Upcoming deliveries (next 7 days)
-        prisma.farmerDelivery.findMany({
-          where: {
-            farmerId: farmer.id,
-            deliveryDate: {
-              gte: now,
-              lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-            }
-          },
-          orderBy: { deliveryDate: "asc" },
-          take: 5
-        }),
-        
-        // Recent QC results (last 10)
-        prisma.qCResult.findMany({
-          where: { farmerId: farmer.id },
-          include: {
-            product: { select: { name: true } }
-          },
-          orderBy: { timestamp: "desc" },
-          take: 10
-        }),
-        
-        // Monthly orders for revenue calculation
-        prisma.orderItem.findMany({
+        },
+        orderBy: { deliveryDate: "asc" }
+      })
+
+      // Fetch QC results for quality score calculation (last 30 days)
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const qcResults = await prisma.qCResult.findMany({
+        where: {
+          farmerId: farmer.id,
+          timestamp: { gte: thirtyDaysAgo }
+        },
+        orderBy: { timestamp: "desc" }
+      })
+
+      // Calculate quality score
+      const calculateQualityScore = (results: typeof qcResults) => {
+        if (results.length === 0) return 0
+        const scores = results.map(result => {
+          const total = result.acceptedQuantity + result.rejectedQuantity
+          return total > 0 ? (result.acceptedQuantity / total) * 100 : 0
+        })
+        return scores.reduce((sum, score) => sum + score, 0) / scores.length
+      }
+
+      const currentQualityScore = calculateQualityScore(qcResults.slice(0, 10))
+      const previousQualityScore = calculateQualityScore(qcResults.slice(10, 20))
+      
+      let qualityTrend: 'up' | 'down' | 'stable' = 'stable'
+      if (currentQualityScore > previousQualityScore + 2) qualityTrend = 'up'
+      else if (currentQualityScore < previousQualityScore - 2) qualityTrend = 'down'
+
+      // Group QC results by date for history
+      const qualityHistory = qcResults.reduce((acc, result) => {
+        const date = result.timestamp.toISOString().split('T')[0]
+        if (!acc[date]) {
+          acc[date] = { total: 0, accepted: 0, rejected: 0 }
+        }
+        acc[date].total += result.acceptedQuantity + result.rejectedQuantity
+        acc[date].accepted += result.acceptedQuantity
+        acc[date].rejected += result.rejectedQuantity
+        return acc
+      }, {} as Record<string, { total: number; accepted: number; rejected: number }>)
+
+      const qualityHistoryArray = Object.entries(qualityHistory).map(([date, data]) => ({
+        date,
+        score: data.total > 0 ? (data.accepted / data.total) * 100 : 0
+      })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+      // Calculate revenue
+      const [todayRevenue, weekRevenue, monthRevenue] = await Promise.all([
+        prisma.orderItem.aggregate({
           where: {
             product: { farmerId: farmer.id },
             order: {
-              createdAt: {
-                gte: startOfMonth,
-                lte: endOfMonth
-              },
+              createdAt: { gte: startOfToday },
               status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
             }
           },
-          include: {
-            order: true
-          }
+          _sum: { price: true }
         }),
-
-        // All order items for total revenue
-        prisma.orderItem.findMany({
+        prisma.orderItem.aggregate({
           where: {
             product: { farmerId: farmer.id },
             order: {
+              createdAt: { gte: startOfWeek },
               status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
             }
           },
-          include: {
-            order: true
-          }
+          _sum: { price: true }
         }),
-
-        // Recent orders (last 5)
-        prisma.order.findMany({
+        prisma.orderItem.aggregate({
           where: {
-            items: {
-              some: {
-                product: { farmerId: farmer.id }
-              }
+            product: { farmerId: farmer.id },
+            order: {
+              createdAt: { gte: startOfMonth },
+              status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
             }
           },
-          include: {
-            items: {
-              where: {
-                product: { farmerId: farmer.id }
-              },
-              include: {
-                product: { select: { name: true } }
-              }
-            },
-            customer: {
-              include: {
-                user: { select: { name: true } }
-              }
-            }
-          },
-          orderBy: { createdAt: "desc" },
-          take: 5
-        }),
-
-        // Products for performance chart
-        prisma.product.findMany({
-          where: { farmerId: farmer.id },
-          select: {
-            id: true,
-            name: true
-          }
+          _sum: { price: true }
         })
       ])
 
-      // Calculate average QC score
-      const qcScores = recentQCResults.map(result => {
-        const total = result.acceptedQuantity + result.rejectedQuantity
-        return total > 0 ? (result.acceptedQuantity / total) * 100 : 0
-      })
-      const averageQCScore = qcScores.length > 0 
-        ? qcScores.reduce((sum, score) => sum + score, 0) / qcScores.length 
-        : 0
-
-      // Calculate monthly revenue (farmer gets 60% of order value)
-      const monthlyRevenue = monthlyOrders.reduce((total, item) => {
-        return total + (item.price * item.quantity * 0.6) // 60% to farmer
-      }, 0)
-
-      // Calculate total revenue (all time)
-      const totalRevenue = allOrderItems.reduce((total, item) => {
-        return total + (item.price * item.quantity * 0.6) // 60% to farmer
-      }, 0)
-
-      // Count active orders
-      const activeOrdersCount = await prisma.order.count({
-        where: {
-          items: {
-            some: {
-              product: { farmerId: farmer.id }
-            }
-          },
-          status: { in: ["PENDING", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
-        }
+      // Get farmer's products for demand forecast (placeholder until ML is implemented)
+      const products = await prisma.product.findMany({
+        where: { farmerId: farmer.id, isActive: true },
+        take: 5
       })
 
-      // Calculate product performance
-      const productPerformance = await Promise.all(
+      // Generate simple demand forecast based on historical averages (placeholder)
+      const demandForecast = await Promise.all(
         products.map(async (product) => {
-          const sales = await prisma.orderItem.aggregate({
+          const historicalOrders = await prisma.orderItem.aggregate({
             where: {
               productId: product.id,
               order: {
+                createdAt: { gte: startOfMonth },
                 status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
               }
             },
-            _sum: {
-              quantity: true
-            }
+            _sum: { quantity: true }
           })
-          return {
-            name: product.name,
-            sales: sales._sum.quantity || 0
-          }
+
+          const avgDailyDemand = (historicalOrders._sum.quantity || 0) / 30
+          
+          return Array.from({ length: 7 }, (_, i) => ({
+            productId: product.id,
+            productName: product.name,
+            quantity: Math.round(avgDailyDemand * (1 + (Math.random() * 0.2 - 0.1))), // ±10% variation
+            date: new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            confidence: 0.75 // Placeholder confidence
+          }))
         })
       )
 
-      const stats = {
-        farmName: farmer.farmName,
-        totalProducts,
-        activeProducts,
-        activeOrders: activeOrdersCount,
-        totalRevenue,
-        monthlyRevenue,
-        totalDeliveries,
-        pendingDeliveries,
-        averageQCScore,
+      // Generate alerts
+      const alerts = []
+      
+      // Low quality score alert
+      if (currentQualityScore < 80 && qcResults.length > 0) {
+        alerts.push({
+          type: 'warning',
+          title: 'Quality Score Below Target',
+          message: `Your quality score is ${currentQualityScore.toFixed(1)}%. Aim for 80% or higher.`,
+          timestamp: now.toISOString()
+        })
+      }
+
+      // Upcoming delivery alert
+      const upcomingDeliveryToday = upcomingDeliveries.filter(d => 
+        new Date(d.deliveryDate).toDateString() === now.toDateString()
+      )
+      if (upcomingDeliveryToday.length > 0) {
+        alerts.push({
+          type: 'info',
+          title: 'Delivery Scheduled Today',
+          message: `You have ${upcomingDeliveryToday.length} delivery scheduled for today.`,
+          timestamp: now.toISOString()
+        })
+      }
+
+      const dashboard = {
+        isApproved: true,
         upcomingDeliveries: upcomingDeliveries.map(delivery => ({
           id: delivery.id,
           deliveryDate: delivery.deliveryDate.toISOString(),
           status: delivery.status,
-          notes: delivery.notes,
+          notes: delivery.notes
         })),
-        recentQCResults: recentQCResults.map(result => ({
-          id: result.id,
-          productName: result.product.name,
-          acceptedQuantity: result.acceptedQuantity,
-          rejectedQuantity: result.rejectedQuantity,
-          timestamp: result.timestamp.toISOString(),
-          rejectionReasons: result.rejectionReasons,
-        })),
-        recentOrders: recentOrders.map(order => ({
-          id: order.id,
-          customerName: order.customer.user.name,
-          totalAmount: order.totalAmount,
-          status: order.status,
-          createdAt: order.createdAt.toISOString(),
-          items: order.items.map(item => ({
-            productName: item.product.name,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        })),
-        productPerformance: productPerformance.sort((a, b) => b.sales - a.sales).slice(0, 5)
+        demandForecast: demandForecast.flat(),
+        qualityScore: {
+          current: Math.round(currentQualityScore * 10) / 10,
+          trend: qualityTrend,
+          history: qualityHistoryArray
+        },
+        revenue: {
+          today: (todayRevenue._sum.price || 0) * 0.6, // Farmer gets 60%
+          week: (weekRevenue._sum.price || 0) * 0.6,
+          month: (monthRevenue._sum.price || 0) * 0.6
+        },
+        alerts
       }
 
-      res.status(200).json({ stats })
+      res.status(200).json(dashboard)
     } catch (error) {
       console.error("Farmer dashboard error:", error)
       res.status(500).json({ message: "Internal server error" })

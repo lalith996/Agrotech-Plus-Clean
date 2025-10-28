@@ -444,7 +444,7 @@ export default function AdminSettingsPage() {
                         </div>
                         <Switch
                           checked={settings.notifications.emailEnabled}
-                          onCheckedChange={(checked) => updateSetting('notifications', 'emailEnabled', checked)}
+                          onCheckedChange={(checked: boolean) => updateSetting('notifications', 'emailEnabled', checked)}
                         />
                       </div>
                       
@@ -455,7 +455,7 @@ export default function AdminSettingsPage() {
                         </div>
                         <Switch
                           checked={settings.notifications.smsEnabled}
-                          onCheckedChange={(checked) => updateSetting('notifications', 'smsEnabled', checked)}
+                          onCheckedChange={(checked: boolean) => updateSetting('notifications', 'smsEnabled', checked)}
                         />
                       </div>
                       
@@ -466,7 +466,7 @@ export default function AdminSettingsPage() {
                         </div>
                         <Switch
                           checked={settings.notifications.pushEnabled}
-                          onCheckedChange={(checked) => updateSetting('notifications', 'pushEnabled', checked)}
+                          onCheckedChange={(checked: boolean) => updateSetting('notifications', 'pushEnabled', checked)}
                         />
                       </div>
                     </ResponsiveGrid>
@@ -487,7 +487,7 @@ export default function AdminSettingsPage() {
                           <span>{item.label}</span>
                           <Switch
                             checked={settings.notifications[item.key as keyof typeof settings.notifications] as boolean}
-                            onCheckedChange={(checked) => updateSetting('notifications', item.key, checked)}
+                            onCheckedChange={(checked: boolean) => updateSetting('notifications', item.key, checked)}
                           />
                         </div>
                       ))}
@@ -534,7 +534,7 @@ export default function AdminSettingsPage() {
                       <span>Same Day Delivery</span>
                       <Switch
                         checked={settings.delivery.sameDayDeliveryEnabled}
-                        onCheckedChange={(checked) => updateSetting('delivery', 'sameDayDeliveryEnabled', checked)}
+                        onCheckedChange={(checked: boolean) => updateSetting('delivery', 'sameDayDeliveryEnabled', checked)}
                       />
                     </div>
                   </div>
@@ -628,7 +628,7 @@ export default function AdminSettingsPage() {
                       <span>Require Two-Factor Authentication</span>
                       <Switch
                         checked={settings.security.requireTwoFactor}
-                        onCheckedChange={(checked) => updateSetting('security', 'requireTwoFactor', checked)}
+                        onCheckedChange={(checked: boolean) => updateSetting('security', 'requireTwoFactor', checked)}
                       />
                     </div>
                   </div>
@@ -755,7 +755,7 @@ export default function AdminSettingsPage() {
                       <span>Analytics Enabled</span>
                       <Switch
                         checked={settings.integrations.analyticsEnabled}
-                        onCheckedChange={(checked) => updateSetting('integrations', 'analyticsEnabled', checked)}
+                        onCheckedChange={(checked: boolean) => updateSetting('integrations', 'analyticsEnabled', checked)}
                       />
                     </div>
                   </div>

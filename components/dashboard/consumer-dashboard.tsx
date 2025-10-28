@@ -32,7 +32,7 @@ export function ConsumerDashboard() {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Next delivery: {consumerDashboard.activeSubscription?.nextDelivery 
-                      ? formatDate(consumerDashboard.activeSubscription.nextDelivery)
+                      ? formatDate(new Date(consumerDashboard.activeSubscription.nextDelivery))
                       : 'Not scheduled'
                     }
                   </p>

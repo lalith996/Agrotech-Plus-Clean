@@ -80,6 +80,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+              aria-label="Close quick view"
             >
               <X className="w-4 h-4" />
             </button>
@@ -112,8 +113,9 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
-                      selectedImage === index ? "border-[#00B207]" : "border-gray-200"
+                      selectedImage === index ? "border-emerald-600" : "border-gray-200"
                     }`}
+                    aria-label={`Select image ${index + 1}`}
                   >
                     <Image
                       src={image}
@@ -130,7 +132,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
           <div className="p-6">
             <div className="mb-4">
-              <Badge variant="secondary" className="mb-2 bg-[#00B207]/10 text-[#00B207] hover:bg-[#00B207]/20">
+              <Badge variant="secondary" className="mb-2 bg-emerald-600/10 text-emerald-600 hover:bg-emerald-600/20">
                 {product.category}
               </Badge>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h2>
@@ -150,7 +152,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
               </div>
 
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-3xl font-bold text-[#00B207]">
+                <span className="text-3xl font-bold text-emerald-600">
                   {formatPrice(product.basePrice)}
                 </span>
                 <span className="text-gray-500">/ {product.unit}</span>
@@ -178,6 +180,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   size="icon"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="h-10 w-10"
+                  aria-label="Decrease quantity"
                 >
                   <Minus className="w-4 h-4" />
                 </Button>
@@ -187,6 +190,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   size="icon"
                   onClick={() => setQuantity(quantity + 1)}
                   className="h-10 w-10"
+                  aria-label="Increase quantity"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -196,7 +200,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
             <div className="space-y-3">
               <Button
                 onClick={handleAddToCart}
-                className="w-full bg-[#00B207] hover:bg-[#00B207]/90 text-white h-12"
+                className="w-full bg-emerald-600 hover:bg-emerald-600/90 text-white h-12"
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart

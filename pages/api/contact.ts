@@ -1,6 +1,6 @@
 
-import type { NextApiRequest, NextApiResponse } from "next";
-import { sendEmail } from "@/lib/sendgrid";
+import { NextApiRequest, NextApiResponse } from "next";
+import { prisma } from "@/lib/prisma";
 
 // In a real application, use environment variables for email addresses
 const TO_EMAIL = process.env.CONTACT_FORM_TO_EMAIL || "your-email@example.com";
@@ -34,12 +34,13 @@ export default async function handler(
       <p><small>This email was sent from the website contact form.</small></p>
     `;
 
-    await sendEmail({
-      to: TO_EMAIL,
-      from: FROM_EMAIL, // This must be a verified sender in your SendGrid account
-      replyTo: email, // Allows you to reply directly to the user
-      subject: `New Inquiry from ${name}: ${subject}`,
-      html: emailHtml,
+    // Email notification disabled - external API removed
+    // Store contact form submission in database instead
+    console.log('[Contact Form] Submission logged:', {
+      name,
+      email,
+      subject,
+      messagePreview: message.substring(0, 100)
     });
 
     return res.status(200).json({

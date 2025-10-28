@@ -1,4 +1,4 @@
-import Tesseract from 'tesseract.js';
+import Tesseract, { Worker, PSM } from 'tesseract.js';
 import sharp from 'sharp';
 import { prisma } from './db-optimization';
 
@@ -50,7 +50,7 @@ export interface ExtractedData {
 }
 
 class OCRService {
-  private static worker: Tesseract.Worker | null = null;
+  private static worker: Worker | null = null;
 
   /**
    * Initialize OCR worker
@@ -69,7 +69,7 @@ class OCRService {
 
       await this.worker.setParameters({
         tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:-/ ',
-        tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+        tessedit_pageseg_mode: PSM.AUTO,
       });
 
       console.log('OCR Worker initialized successfully');
@@ -258,10 +258,11 @@ class OCRService {
         }
       }
 
-      // Extract location
+      // Extract location information
       const locationPatterns = [
-        /(?:address|location)\s*:?\s*([^\n\r]+)/i,
-        /(?:city|state|country)\s*:?\s*([^\n\r]+)/i
+        /location\s*:?\s*([^\n\r]+)/i,
+        /address\s*:?\s*([^\n\r]+)/i,
+        /region\s*:?\s*([^\n\r]+)/i
       ];
 
       for (const pattern of locationPatterns) {
@@ -272,45 +273,33 @@ class OCRService {
         }
       }
 
-      // Extract product types
-      const productKeywords = [
-        'organic', 'vegetables', 'fruits', 'grains', 'dairy', 'meat', 'poultry',
-        'crops', 'produce', 'livestock', 'aquaculture', 'herbs', 'spices'
-      ];
+      // Extract product types and standards
+      const productTypes: string[] = [];
+      const standards: string[] = [];
 
-      const foundProducts: string[] = [];
-      for (const keyword of productKeywords) {
-        if (text.includes(keyword)) {
-          foundProducts.push(keyword);
+      for (const line of lines) {
+        const lower = line.toLowerCase();
+        if (lower.includes('product')) {
+          const match = line.match(/product\s*(?:types?)?\s*:?\s*([^\n\r]+)/i);
+          if (match) {
+            productTypes.push(...match[1].split(',').map(s => s.trim()));
+          }
+        }
+        if (lower.includes('standard') || lower.includes('certification')) {
+          const match = line.match(/(?:standards?|certifications?)\s*:?\s*([^\n\r]+)/i);
+          if (match) {
+            standards.push(...match[1].split(',').map(s => s.trim()));
+          }
         }
       }
 
-      if (foundProducts.length > 0) {
-        extractedData.productTypes = foundProducts;
-      }
-
-      // Extract standards
-      const standardKeywords = [
-        'usda organic', 'eu organic', 'jis organic', 'global gap', 'haccp',
-        'iso 22000', 'brc', 'sqf', 'fair trade', 'rainforest alliance'
-      ];
-
-      const foundStandards: string[] = [];
-      for (const standard of standardKeywords) {
-        if (text.includes(standard)) {
-          foundStandards.push(standard);
-        }
-      }
-
-      if (foundStandards.length > 0) {
-        extractedData.standards = foundStandards;
-      }
-
-      return extractedData;
+      if (productTypes.length > 0) extractedData.productTypes = productTypes;
+      if (standards.length > 0) extractedData.standards = standards;
     } catch (error) {
-      console.error('Data extraction error:', error);
-      return extractedData;
+      console.error('Error extracting certification data:', error);
     }
+
+    return extractedData;
   }
 
   /**

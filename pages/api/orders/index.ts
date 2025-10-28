@@ -4,8 +4,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { UserRole, OrderStatus } from "@prisma/client";
-import { sendEmail } from "@/lib/sendgrid";
-import { sendSms } from "@/lib/twilio";
 
 const formatOrderForEmail = (order: any) => {
   const itemsList = order.items.map((item: any) => 
@@ -125,7 +123,98 @@ export default async function handler(
       res.status(500).json({ message: "Internal server error" });
     }
   } else if (req.method === "POST") {
-    // POST logic remains the same
+    try {
+      if (session.user.role !== UserRole.CUSTOMER) {
+        return res.status(403).json({ message: "Only customers can create orders" });
+      }
+
+      const customer = await prisma.customer.findUnique({
+        where: { userId: session.user.id },
+      });
+
+      if (!customer) {
+        return res.status(404).json({ message: "Customer profile not found" });
+      }
+
+      // Validate order data
+      const { items, addressId, deliverySlot, deliveryDate, specialNotes } = req.body;
+
+      if (!items?.length) {
+        return res.status(400).json({ message: "Order must contain at least one item" });
+      }
+
+      // Calculate total amount and validate products
+      let totalAmount = 0;
+      const orderItems = [];
+
+      for (const item of items) {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product) {
+          return res.status(400).json({ message: `Product ${item.productId} not found` });
+        }
+
+        if (!product.isActive) {
+          return res.status(400).json({ message: `Product ${product.name} is not available` });
+        }
+
+        const itemTotal = product.basePrice * item.quantity;
+        totalAmount += itemTotal;
+
+        orderItems.push({
+          productId: product.id,
+          quantity: item.quantity,
+          price: product.basePrice,
+        });
+      }
+
+      // Create the order
+      const order = await prisma.order.create({
+        data: {
+          customerId: customer.id,
+          addressId,
+          deliverySlot,
+          deliveryDate: new Date(deliveryDate),
+          specialNotes,
+          totalAmount,
+          status: OrderStatus.PENDING,
+          items: {
+            createMany: {
+              data: orderItems,
+            },
+          },
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+          address: true,
+          customer: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      });
+
+      // External notification services removed (SendGrid, Twilio)
+      // Order confirmation stored in database
+      console.log('[Order Created] Confirmation for:', {
+        orderId: order.id,
+        customerEmail: order.customer.user.email,
+        customerPhone: order.customer.phone,
+        totalAmount: order.totalAmount
+      })
+
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Order creation error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);
     res.status(405).json({ message: "Method not allowed" });

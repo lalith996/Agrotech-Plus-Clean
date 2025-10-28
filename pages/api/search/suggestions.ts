@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { SearchEngine } from '@/lib/search';
 import { prisma } from '@/lib/db-optimization';
 import { cacheHelpers } from '@/lib/cache';
+import { mlClient } from '@/lib/ml-client';
+import { ML_FEATURES } from '@/lib/config/ml-endpoints';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -31,6 +33,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'suggestions',
       { query, type, limit: suggestionLimit },
       async () => {
+        // Try ML-powered suggestions first if enabled
+        if (ML_FEATURES.smartSearch.enabled && query.length >= 2) {
+          try {
+            const mlSuggestions = await getMLSuggestions(
+              query,
+              suggestionLimit,
+              type as string,
+              session?.user?.id
+            );
+            
+            if (mlSuggestions && mlSuggestions.length > 0) {
+              return mlSuggestions;
+            }
+          } catch (error) {
+            console.error('ML suggestions failed, falling back:', error);
+          }
+        }
+        
+        // Try Elasticsearch next
         const isElasticsearchAvailable = await SearchEngine.isElasticsearchAvailable();
         
         if (isElasticsearchAvailable) {
@@ -54,6 +75,78 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: false,
       message: 'Failed to get suggestions'
     });
+  }
+}
+
+/**
+ * Get ML-powered suggestions with NLP and fuzzy matching
+ */
+async function getMLSuggestions(
+  query: string,
+  limit: number,
+  type: string,
+  userId?: string
+) {
+  try {
+    // Call ML service for smart suggestions
+    const mlResponse = await mlClient.search(
+      {
+        query,
+        filters: {},
+        userId,
+        limit: limit * 2, // Request more for better filtering
+      },
+      // Fallback to database suggestions
+      async () => {
+        return {
+          results: [],
+          suggestions: await getDatabaseSuggestions(query, limit, type),
+          totalCount: 0,
+        };
+      }
+    );
+
+    if (!mlResponse.success || !mlResponse.data) {
+      return null;
+    }
+
+    const { suggestions: mlSuggestions, results } = mlResponse.data;
+
+    // Combine ML suggestions with product results
+    const combinedSuggestions: any[] = [];
+
+    // Add ML-generated suggestions (typo corrections, synonyms, etc.)
+    if (mlSuggestions && mlSuggestions.length > 0) {
+      combinedSuggestions.push(
+        ...mlSuggestions.slice(0, Math.ceil(limit / 2)).map((s: string) => ({
+          text: s,
+          type: 'suggestion',
+          score: 100,
+        }))
+      );
+    }
+
+    // Add product name suggestions from ML results
+    if (results && results.length > 0) {
+      const productSuggestions = results
+        .slice(0, Math.ceil(limit / 2))
+        .map((r: any) => ({
+          text: r.name,
+          type: 'product',
+          id: r.id,
+          score: r.relevance || 50,
+        }));
+      
+      combinedSuggestions.push(...productSuggestions);
+    }
+
+    // Sort by score and limit
+    return combinedSuggestions
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+  } catch (error) {
+    console.error('ML suggestions error:', error);
+    return null;
   }
 }
 

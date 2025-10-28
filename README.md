@@ -46,6 +46,11 @@ A comprehensive farm-to-table subscription platform connecting consumers directl
 - **Prisma** for type-safe database operations
 - **Role-based data access** with proper relationships
 
+### AI/ML Services (Optional)
+- **Python ML Service** (FastAPI) for AI/ML predictions
+- **Redis** for caching ML predictions
+- **ML Features**: Product recommendations, demand forecasting, farmer scoring, smart search, route optimization
+
 ## 🏗️ Architecture
 
 ```
@@ -121,6 +126,19 @@ A comprehensive farm-to-table subscription platform connecting consumers directl
    npm run dev
    ```
 
+6. **(Optional) Set up ML Service**
+   
+   The ML service provides AI-powered features like product recommendations, demand forecasting, and route optimization. It's optional and the system will use fallback strategies if unavailable.
+   
+   ```bash
+   # Add ML service configuration to .env.local
+   ML_SERVICE_URL="http://localhost:8000"
+   ML_SERVICE_API_KEY="your-api-key"
+   ML_SERVICE_TIMEOUT="5000"
+   ```
+   
+   See [ML Service Setup](#ml-service-setup) for detailed instructions.
+
 ## 🗄️ Database Schema
 
 ### Core Entities
@@ -190,6 +208,122 @@ A comprehensive farm-to-table subscription platform connecting consumers directl
 - Error monitoring (Sentry)
 - Analytics tracking
 - SSL/TLS encryption
+
+## 🤖 ML Service Setup
+
+The ML service is an optional Python-based service that provides AI/ML features. The system works without it using fallback strategies.
+
+### ML Features
+
+1. **Product Recommendations** - Personalized product suggestions based on order history
+2. **Demand Forecasting** - Predict product demand for farmers (7-day forecast)
+3. **Farmer Scoring** - Automated scoring of farmer applications
+4. **Smart Search** - NLP-powered product search with typo tolerance
+5. **Route Optimization** - Optimize delivery routes for drivers
+
+### Configuration
+
+Add these environment variables to your `.env.local`:
+
+```env
+# ML Service Configuration (Optional)
+ML_SERVICE_URL="http://localhost:8000"
+ML_SERVICE_API_KEY="your-api-key-here"
+ML_SERVICE_TIMEOUT="5000"
+
+# Optional: Enable/disable specific ML features
+ML_FEATURE_RECOMMENDATIONS="true"
+ML_FEATURE_DEMAND_FORECAST="true"
+ML_FEATURE_FARMER_SCORING="true"
+ML_FEATURE_SMART_SEARCH="true"
+ML_FEATURE_ROUTE_OPTIMIZATION="true"
+```
+
+### ML Service Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Next.js Application                   │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │           ML Client (lib/ml-client.ts)           │  │
+│  │  • Request/Response handling                     │  │
+│  │  • Timeout management                            │  │
+│  │  • Error handling & fallbacks                    │  │
+│  │  • Redis caching layer                           │  │
+│  └──────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼ HTTP/REST
+┌─────────────────────────────────────────────────────────┐
+│              Python ML Service (FastAPI)                 │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Endpoints:                                      │  │
+│  │  • POST /ml/recommendations                      │  │
+│  │  • POST /ml/demand-forecast                      │  │
+│  │  • POST /ml/farmer-score                         │  │
+│  │  • POST /ml/search                               │  │
+│  │  • POST /ml/route-optimize                       │  │
+│  │  • GET  /health                                  │  │
+│  └──────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Caching Strategy
+
+ML predictions are cached in Redis to improve performance:
+
+- **Recommendations**: 1 hour TTL
+- **Demand Forecast**: 24 hours TTL
+- **Farmer Scoring**: 7 days TTL
+- **Search Results**: 30 minutes TTL
+- **Route Optimization**: No caching (always fresh)
+
+### Fallback Strategies
+
+When the ML service is unavailable, the system automatically uses fallback strategies:
+
+| Feature | Fallback Strategy |
+|---------|------------------|
+| Recommendations | Trending products in user's area |
+| Demand Forecast | Moving average of historical data |
+| Farmer Scoring | Rule-based scoring algorithm |
+| Smart Search | Basic text matching |
+| Route Optimization | Nearest neighbor algorithm |
+
+### Development Without ML Service
+
+The application works fully without the ML service. All ML features gracefully degrade to their fallback implementations. This allows you to:
+
+- Develop and test the main application independently
+- Deploy without ML infrastructure initially
+- Add ML capabilities later without code changes
+
+### ML Service Implementation (Future)
+
+The Python ML service is not included in this repository. To implement it:
+
+1. Create a FastAPI application
+2. Implement the endpoints defined in `lib/config/ml-endpoints.ts`
+3. Use scikit-learn, TensorFlow, or similar libraries for ML models
+4. Deploy as a separate service (Docker, Kubernetes, etc.)
+5. Configure the `ML_SERVICE_URL` to point to your deployment
+
+Example endpoint structure:
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.post("/ml/recommendations")
+async def get_recommendations(request: RecommendationRequest):
+    # Implement collaborative filtering
+    return {
+        "products": [...],
+        "confidence": 0.85,
+        "algorithm": "collaborative-filtering"
+    }
+```
 
 ## 🤝 Contributing
 

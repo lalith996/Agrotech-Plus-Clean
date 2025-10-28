@@ -176,15 +176,17 @@ class TrafficMonitoringService {
     }> = [];
 
     for (const route of routes) {
-      for (let i = 0; i < route.waypoints.length - 1; i++) {
-        const from = route.waypoints[i].location.coordinates;
-        const to = route.waypoints[i + 1].location.coordinates;
+      const wps = route.waypoints ?? [];
+      for (let i = 0; i < wps.length - 1; i++) {
+        const from = wps[i]?.location?.coordinates;
+        const to = wps[i + 1]?.location?.coordinates;
+        if (!from || !to) continue;
         
         segments.push({
           id: `${route.vehicleId}-${i}`,
           from,
           to,
-          distance: route.waypoints[i + 1].distanceFromPrevious
+          distance: wps[i + 1]?.distanceFromPrevious ?? 0
         });
       }
     }
@@ -278,11 +280,13 @@ class WeatherMonitoringService {
     const result: Array<{ lat: number; lng: number }> = [];
 
     for (const route of routes) {
-      for (const waypoint of route.waypoints) {
-        const key = `${waypoint.location.coordinates.lat},${waypoint.location.coordinates.lng}`;
+      for (const waypoint of (route.waypoints ?? [])) {
+        const coords = waypoint?.location?.coordinates;
+        if (!coords) continue;
+        const key = `${coords.lat},${coords.lng}`;
         if (!locations.has(key)) {
           locations.add(key);
-          result.push(waypoint.location.coordinates);
+          result.push(coords);
         }
       }
     }
@@ -561,7 +565,8 @@ export class DynamicRouteManager {
     let confidenceSum = 0;
     let segmentCount = 0;
 
-    for (let i = 0; i < route.waypoints.length - 1; i++) {
+    const wps = route.waypoints ?? [];
+    for (let i = 0; i < wps.length - 1; i++) {
       const segmentId = `${route.vehicleId}-${i}`;
       const trafficCondition = this.trafficMonitor.getTrafficForSegment(segmentId);
       
@@ -608,9 +613,11 @@ export class DynamicRouteManager {
     reason: string;
     confidence: number;
   } {
-    for (const waypoint of route.waypoints) {
+    for (const waypoint of (route.waypoints ?? [])) {
+      const coords = waypoint?.location?.coordinates;
+      if (!coords) continue;
       const alerts = this.alertService.getAlertsForLocation(
-        waypoint.location.coordinates,
+        coords,
         5 // 5km radius
       );
 
@@ -663,7 +670,7 @@ export class DynamicRouteManager {
   ): Promise<OptimizedRoute | null> {
     try {
       // Extract locations and vehicle info
-      const locations: DeliveryLocation[] = originalRoute.locations;
+      const locations: DeliveryLocation[] = originalRoute.locations ?? [];
       
       // Mock vehicle - in practice would retrieve from database
       const vehicle: Vehicle = {

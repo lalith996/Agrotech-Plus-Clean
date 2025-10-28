@@ -1,0 +1,42 @@
+[
+  {
+    "productId": "prod_1",
+    "name": "Organic Tomatoes",
+    "unitCost": 2.50
+  },
+  {
+    "productId": "prod_2", 
+    "name": "Fresh Carrots",
+    "unitCost": 3.00
+  },
+  {
+    "productId": "prod_3",
+    "name": "Sweet Corn",
+    "unitCost": 1.75
+  },
+  {
+    "productId": "prod_4",
+    "name": "Bell Peppers",
+    "unitCost": 4.25
+  },
+  {
+    "productId": "prod_5",
+    "name": "Leafy Greens",
+    "unitCost": 3.50
+  },
+  {
+    "productId": "prod_6",
+    "name": "Potatoes",
+    "unitCost": 1.20
+  },
+  {
+    "productId": "prod_7",
+    "name": "Onions",
+    "unitCost": 0.95
+  },
+  {
+    "productId": "prod_8",
+    "name": "Broccoli",
+    "unitCost": 2.80
+  }
+]

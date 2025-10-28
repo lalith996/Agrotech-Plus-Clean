@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,8 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showShopDropdown, setShowShopDropdown] = useState(false)
   const [showPagesDropdown, setShowPagesDropdown] = useState(false)
+  const closeShopTimer = useRef<number | null>(null)
+  const closePagesTimer = useRef<number | null>(null)
   
   const cartItemCount = useCartStore((state) => state.getItemCount())
   const wishlistItemCount = useWishlistStore((state) => state.getItemCount())
@@ -99,6 +101,7 @@ export function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
               className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <Menu className="w-6 h-6 text-gray-700" />
@@ -129,15 +132,25 @@ export function Header() {
               {/* Shop Dropdown */}
               <div 
                 className="relative"
-                onMouseEnter={() => setShowShopDropdown(true)}
-                onMouseLeave={() => setShowShopDropdown(false)}
+                onMouseEnter={() => {
+                  if (closeShopTimer.current) {
+                    clearTimeout(closeShopTimer.current)
+                    closeShopTimer.current = null
+                  }
+                  setShowShopDropdown(true)
+                }}
+                onMouseLeave={() => {
+                  closeShopTimer.current = window.setTimeout(() => {
+                    setShowShopDropdown(false)
+                  }, 150)
+                }}
               >
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none">
                   <span>Shop</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 {showShopDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 pointer-events-auto">
                     <Link href="/products" className="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-[#00B207] transition-colors">
                       All Products
                     </Link>
@@ -167,15 +180,25 @@ export function Header() {
               {/* Pages Dropdown */}
               <div 
                 className="relative"
-                onMouseEnter={() => setShowPagesDropdown(true)}
-                onMouseLeave={() => setShowPagesDropdown(false)}
+                onMouseEnter={() => {
+                  if (closePagesTimer.current) {
+                    clearTimeout(closePagesTimer.current)
+                    closePagesTimer.current = null
+                  }
+                  setShowPagesDropdown(true)
+                }}
+                onMouseLeave={() => {
+                  closePagesTimer.current = window.setTimeout(() => {
+                    setShowPagesDropdown(false)
+                  }, 150)
+                }}
               >
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none">
                   <span>Pages</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 {showPagesDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 pointer-events-auto">
                     <Link href="/about" className="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-[#00B207] transition-colors">
                       About Us
                     </Link>
@@ -222,6 +245,7 @@ export function Header() {
               {/* Cart */}
               <button 
                 onClick={() => setCartDrawerOpen(true)}
+                aria-label="Open cart"
                 className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
@@ -238,7 +262,7 @@ export function Header() {
               ) : session ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-[#00B207] transition-all">
+                    <button aria-label="User menu" className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-[#00B207] transition-all">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={session.user.image || ""} alt={session.user.name || ""} />
                         <AvatarFallback className="bg-[#00B207] text-white">
@@ -348,6 +372,7 @@ export function Header() {
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close menu"
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-6 h-6" />

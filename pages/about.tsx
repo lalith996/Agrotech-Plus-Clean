@@ -1,5 +1,5 @@
+import Link from "next/link"
 import { motion } from "framer-motion"
-import { MainLayout } from "@/components/layout/main-layout"
 import { 
   Target, 
   Eye, 
@@ -105,7 +105,6 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <MainLayout>
       <div className="bg-white">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-green-50 to-white py-16 md:py-24">
@@ -362,23 +361,22 @@ export default function AboutPage() {
                 Be part of the revolution in sustainable agriculture. Start your journey to healthier living today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
+                <Link
                   href="/products"
                   className="inline-flex items-center justify-center px-8 py-3 bg-white text-[#00B207] rounded-full font-semibold hover:bg-green-50 transition-colors"
                 >
                   Shop Now
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/contact"
                   className="inline-flex items-center justify-center px-8 py-3 bg-transparent border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-[#00B207] transition-colors"
                 >
                   Contact Us
-                </a>
+                </Link>
               </div>
             </motion.div>
           </div>
         </section>
       </div>
-    </MainLayout>
   )
 }

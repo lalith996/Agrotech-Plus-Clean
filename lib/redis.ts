@@ -13,7 +13,7 @@ const redis = new Redis({
   keepAlive: 30000,
   connectTimeout: 10000,
   commandTimeout: 5000,
-  retryStrategy: (times) => Math.min(times * 50, 2000)
+  retryStrategy: (times: number) => Math.min(times * 50, 2000)
 });
 
 // Memory cache for fastest access
@@ -32,7 +32,7 @@ export interface CacheOptions {
 }
 
 // Default cache options
-const defaultOptions: CacheOptions = {
+const defaultOptions: Required<CacheOptions> = {
   memoryTTL: 300,  // 5 minutes
   redisTTL: 3600,  // 1 hour
   skipMemory: false,
@@ -69,7 +69,7 @@ export class CacheService {
     fetchFunction: () => Promise<T>,
     options: CacheOptions = {}
   ): Promise<T> {
-    const opts = { ...defaultOptions, ...options };
+    const opts: Required<CacheOptions> = { ...defaultOptions, ...options };
 
     try {
       // Level 1: Memory cache (fastest)
@@ -80,53 +80,45 @@ export class CacheService {
         }
       }
 
-      // Level 2: Redis cache (distributed)
+      // Level 2: Redis cache
       if (!opts.skipRedis) {
-        try {
-          const redisResult = await this.redis.get(key);
-          if (redisResult) {
-            const parsed = JSON.parse(redisResult) as T;
-            
-            // Store in memory cache for next time
-            if (!opts.skipMemory) {
-              this.memoryCache.set(key, parsed, opts.memoryTTL || 300);
-            }
-            
-            return parsed;
+        const redisResult = await this.redis.get(key);
+        if (redisResult !== null) {
+          try {
+            const parsed = JSON.parse(redisResult);
+            // Warm memory cache
+            this.memoryCache.set(key, parsed, opts.memoryTTL);
+            return parsed as T;
+          } catch (error) {
+            // If JSON parsing fails, treat as raw value
+            return redisResult as unknown as T;
           }
-        } catch (redisError) {
-          console.warn('Redis get failed, falling back to fetch:', redisError);
         }
       }
 
-      // Level 3: Fetch from source
-      const fresh = await fetchFunction();
+      // If not found in cache, fetch from source
+      const freshValue = await fetchFunction();
 
-      // Cache at all levels
-      const cachePromises: Promise<any>[] = [];
-
-      if (!opts.skipRedis) {
-        try {
-          const redisPromise = this.redis.setex(key, opts.redisTTL || 3600, JSON.stringify(fresh));
-          if (redisPromise && typeof redisPromise.catch === 'function') {
-            cachePromises.push(redisPromise.catch(error => console.warn('Redis set failed:', error)));
-          }
-        } catch (error) {
-          console.warn('Redis set failed:', error);
-        }
-      }
-
+      // Set in caches
       if (!opts.skipMemory) {
-        this.memoryCache.set(key, fresh, opts.memoryTTL || 300);
+        this.memoryCache.set(key, freshValue, opts.memoryTTL);
       }
 
-      // Don't wait for caching to complete
-      Promise.all(cachePromises);
+      if (!opts.skipRedis) {
+        try {
+          const serialized = JSON.stringify(freshValue);
+          await this.redis.setex(key, opts.redisTTL, serialized);
+        } catch (error) {
+          // Fallback: store raw value if JSON serialization fails
+          await this.redis.setex(key, opts.redisTTL, String(freshValue));
+        }
+      }
 
-      return fresh;
+      return freshValue;
     } catch (error) {
       console.error('Cache get error:', error);
-      throw error;
+      // Fallback to fetch function on error
+      return await fetchFunction();
     }
   }
 
@@ -138,67 +130,50 @@ export class CacheService {
     value: T,
     options: CacheOptions = {}
   ): Promise<void> {
-    const opts = { ...defaultOptions, ...options };
+    const opts: Required<CacheOptions> = { ...defaultOptions, ...options };
 
-    const cachePromises: Promise<any>[] = [];
-
-    // Set in memory cache
-    if (!opts.skipMemory) {
-      this.memoryCache.set(key, value, opts.memoryTTL || 300);
-    }
-
-    // Set in Redis cache
-    if (!opts.skipRedis) {
-      try {
-        const redisPromise = this.redis.setex(key, opts.redisTTL || 3600, JSON.stringify(value));
-        if (redisPromise && typeof redisPromise.catch === 'function') {
-          cachePromises.push(redisPromise.catch(error => console.warn('Redis set failed:', error)));
-        }
-      } catch (error) {
-        console.warn('Redis set failed:', error);
+    try {
+      // Set memory cache
+      if (!opts.skipMemory) {
+        this.memoryCache.set(key, value, opts.memoryTTL);
       }
-    }
 
-    await Promise.all(cachePromises);
+      // Set Redis cache
+      if (!opts.skipRedis) {
+        const serialized = JSON.stringify(value);
+        await this.redis.setex(key, opts.redisTTL, serialized);
+      }
+    } catch (error) {
+      console.error('Cache set error:', error);
+    }
   }
 
   /**
    * Delete value from cache
    */
   async delete(key: string): Promise<void> {
-    const deletePromises: Promise<any>[] = [];
-
-    // Delete from memory cache
-    this.memoryCache.del(key);
-
-    // Delete from Redis cache
     try {
-      const redisPromise = this.redis.del(key);
-      if (redisPromise && typeof redisPromise.catch === 'function') {
-        deletePromises.push(redisPromise.catch(error => console.warn('Redis delete failed:', error)));
-      }
+      // Delete from memory cache
+      this.memoryCache.del(key);
+      
+      // Delete from Redis
+      await this.redis.del(key);
     } catch (error) {
-      console.warn('Redis delete failed:', error);
+      console.error('Cache delete error:', error);
     }
-
-    await Promise.all(deletePromises);
   }
 
   /**
-   * Invalidate cache by pattern
+   * Invalidate cache entries by pattern (Redis only)
    */
   async invalidate(pattern: string): Promise<void> {
-    // Clear memory cache (simple approach - clear all)
-    this.memoryCache.flushAll();
-
-    // Clear Redis cache by pattern
     try {
       const keys = await this.redis.keys(pattern);
-      if (keys && keys.length > 0) {
+      if (keys.length > 0) {
         await this.redis.del(...keys);
       }
     } catch (error) {
-      console.warn('Redis invalidate failed:', error);
+      console.error('Cache invalidate error:', error);
     }
   }
 
@@ -206,106 +181,91 @@ export class CacheService {
    * Get cache statistics
    */
   getStats() {
-    const memoryKeys = this.memoryCache.keys();
     return {
       memory: {
-        keys: memoryKeys ? memoryKeys.length : 0,
+        keys: this.memoryCache.keys().length,
         stats: this.memoryCache.getStats(),
       },
       redis: {
         status: this.redis.status,
-      }
+      },
     };
   }
 
   /**
-   * Warm cache with data
+   * Warm up cache with precomputed values
    */
   async warmCache<T>(
     entries: Array<{ key: string; value: T; options?: CacheOptions }>
   ): Promise<void> {
-    const promises = entries.map(entry => 
-      this.set(entry.key, entry.value, entry.options)
-    );
-    
-    await Promise.all(promises);
+    for (const entry of entries) {
+      await this.set(entry.key, entry.value, entry.options);
+    }
   }
 
   /**
-   * Close connections
+   * Close cache services
    */
   async close(): Promise<void> {
-    this.memoryCache.close();
-    await this.redis.quit();
+    try {
+      await this.redis.quit();
+    } catch (error) {
+      console.error('Error closing Redis connection:', error);
+    }
   }
 }
 
-// Singleton instance
+// Export a singleton instance
 export const cacheService = new CacheService();
 
-// Utility functions for common cache patterns
+// Common cache key helpers
 export const cacheUtils = {
-  /**
-   * Generate cache key for user-specific data
-   */
   userKey: (userId: string, resource: string) => `user:${userId}:${resource}`,
-
-  /**
-   * Generate cache key for product data
-   */
   productKey: (productId: string) => `product:${productId}`,
-
-  /**
-   * Generate cache key for search results
-   */
   searchKey: (query: string, filters: Record<string, any>) => {
-    const filterStr = JSON.stringify(filters);
-    return `search:${Buffer.from(query + filterStr).toString('base64')}`;
+    const filterStr = Object.entries(filters)
+      .map(([key, value]) => `${key}:${JSON.stringify(value)}`)
+      .join('|');
+    return `search:${query}:${filterStr}`;
   },
-
-  /**
-   * Generate cache key for analytics data
-   */
   analyticsKey: (type: string, period: string, userId?: string) => {
-    const base = `analytics:${type}:${period}`;
-    return userId ? `${base}:${userId}` : base;
+    return userId ? `analytics:${type}:${period}:${userId}` : `analytics:${type}:${period}`;
   },
-
-  /**
-   * Generate cache key for API responses
-   */
   apiKey: (endpoint: string, params: Record<string, any> = {}) => {
-    const paramStr = Object.keys(params).length > 0 
-      ? `:${Buffer.from(JSON.stringify(params)).toString('base64')}`
-      : '';
-    return `api:${endpoint}${paramStr}`;
-  }
+    const paramStr = Object.entries(params)
+      .map(([key, value]) => `${key}:${JSON.stringify(value)}`)
+      .join('|');
+    return `api:${endpoint}:${paramStr}`;
+  },
 };
 
-// Cache middleware for API routes
+// Higher-order function for caching API responses
 export function withCache<T>(
   key: string | ((req: any) => string),
   options: CacheOptions = {}
 ) {
-  return function (_target: any, _propertyName: string, descriptor: PropertyDescriptor) {
-    const method = descriptor.value;
-
-    descriptor.value = async function (...args: any[]) {
-      const req = args[0];
+  return async (req: any, res: any, next: any) => {
+    try {
       const cacheKey = typeof key === 'function' ? key(req) : key;
+      const cachedData = await cacheService.get(cacheKey, async () => {
+        return await new Promise<T>((resolve) => {
+          // Collect response
+          const originalJson = res.json;
+          res.json = (data: T) => {
+            resolve(data);
+            return originalJson.call(res, data);
+          };
+          
+          next();
+        });
+      }, options);
 
-      try {
-        return await cacheService.get<T>(
-          cacheKey,
-          () => method.apply(this, args),
-          options
-        );
-      } catch (error) {
-        console.error('Cache middleware error:', error);
-        return method.apply(this, args);
+      if (cachedData) {
+        return res.json(cachedData);
       }
-    };
-
-    return descriptor;
+    } catch (error) {
+      console.error('Error in withCache:', error);
+      next();
+    }
   };
 }

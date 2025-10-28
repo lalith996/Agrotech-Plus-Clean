@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { UserRole } from "@prisma/client"
+import { emailGenerator } from "@/lib/email-generator"
 
 interface UserProfile {
   id: string
@@ -187,7 +188,26 @@ export default function Profile() {
                     disabled
                     className="bg-gray-50"
                   />
-                  <p className="text-sm text-gray-500">Email cannot be changed</p>
+                  {profile.role === UserRole.CUSTOMER ? (
+                    <p className="text-sm text-gray-500">Email cannot be changed</p>
+                  ) : (
+                    <>
+                      {(() => {
+                        const parsed = emailGenerator.parseEmail(profile.email)
+                        return parsed ? (
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p className="text-gray-500">System-generated email (cannot be changed)</p>
+                            <div className="flex items-center gap-4 text-xs bg-blue-50 border border-blue-200 rounded-md p-2">
+                              <span className="font-medium">City: <span className="uppercase">{parsed.city}</span></span>
+                              <span className="font-medium">Registration #: {parsed.registrationNumber}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">Email cannot be changed</p>
+                        )
+                      })()}
+                    </>
+                  )}
                 </div>
 
                 <div className="space-y-2">

@@ -1,7 +1,8 @@
 
 import { NextApiRequest, NextApiResponse } from "next"
 import { prisma } from "@/lib/prisma"
-import { getSession } from "next-auth/react"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import { productSchema } from "@/lib/validations" // Assuming you have a product validation schema
 
 export default async function handler(
@@ -126,11 +127,11 @@ export default async function handler(
         },
       })
     } catch (error) {
-      console.error("Products fetch error:", error)
+      console.error("Products API error:", error)
       res.status(500).json({ message: "Internal server error" })
     }
   } else if (req.method === "POST") {
-    const session = await getSession({ req })
+    const session = await getServerSession(req, res, authOptions)
 
     if (!session || session.user.role !== "FARMER") {
       return res.status(401).json({ message: "Unauthorized" })
@@ -156,7 +157,6 @@ export default async function handler(
 
       res.status(201).json(newProduct)
     } catch (error: any) {
-      console.error("Product creation error:", error)
       if (error.name === "ZodError") {
         return res.status(400).json({ message: "Validation error", errors: error.errors })
       }

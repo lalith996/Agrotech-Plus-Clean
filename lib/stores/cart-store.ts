@@ -62,3 +62,20 @@ export const useCartStore = create<CartStore>()(
     }
   )
 )
+
+export const useCart = () => {
+  const store = useCartStore.getState();
+  return {
+    addToCart: (product: any, quantity: number) => {
+      store.addItem({
+        id: product.id,
+        productId: product.id,
+        name: product.name,
+        price: product.price ?? product.basePrice ?? 0,
+        quantity,
+        image: product.imageUrl ?? (product.images ? product.images[0] : undefined),
+        unit: product.unit,
+      });
+    },
+  };
+};

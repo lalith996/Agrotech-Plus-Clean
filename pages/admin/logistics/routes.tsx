@@ -1,35 +1,18 @@
-import { useState, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Order } from '@prisma/client';
 
-const containerStyle = {
-  width: '100%',
-  height: '700px'
-};
-
-const center = {
-  lat: -3.745, // Default center, will be updated based on orders
-  lng: -38.523
-};
+const Map = dynamic(() => import('@/components/map'), { ssr: false });
 
 const AdminRoutes = () => {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
-  });
-
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const fetchOrdersForDate = async (date) => {
-    // In a real app, you would fetch orders for a specific date and status
-    // For this example, we'll just fetch all PENDING orders
+  const fetchOrdersForDate = async (date: string) => {
     try {
       const response = await fetch(`/api/orders?status=PENDING`);
       if (response.ok) {
         const data = await response.json();
-        // We need address information which is nested, this is a simplification
-        // The API would need to return orders with full address details
         setOrders(data.orders);
       } else {
         console.error('Failed to fetch orders');
@@ -43,44 +26,48 @@ const AdminRoutes = () => {
     fetchOrdersForDate(selectedDate);
   }, [selectedDate]);
 
-  // This is a placeholder for geocoding. In a real app, you would geocode the addresses
-  // either on the backend when the order is placed, or on the frontend here.
-  const getCoordinates = (address) => {
-    // Simple and not robust way to get some coordinates for visualization
-    // Replace with a real geocoding service call
+  // Placeholder geocoding to visualize orders
+  const getCoordinates = (address: { city: string; street: string }) => {
     if (!address) return null;
-    // Example: a simple hash to get some variation for demo purposes
     const lat = -3.745 + (address.city.length % 10) * 0.01;
     const lng = -38.523 + (address.street.length % 10) * 0.01;
     return { lat, lng };
   };
 
-  return isLoaded ? (
-    <div>
-      <h1>Delivery Routes</h1>
-      <input 
-        type="date" 
+  const routeStops = useMemo(() => {
+    // Build a single demo route from orders
+    return orders
+      .map((order) => getCoordinates({ city: 'Demo', street: 'Demo' }))
+      .filter((c): c is { lat: number; lng: number } => !!c)
+      .map((c, idx) => ({ lat: c.lat, lng: c.lng, label: String(idx + 1) }));
+  }, [orders]);
+
+  const center = useMemo(() => {
+    return routeStops.length > 0 ? { lat: routeStops[0].lat, lng: routeStops[0].lng } : { lat: -3.745, lng: -38.523 };
+  }, [routeStops]);
+
+  return (
+    <div className="p-4">
+      <h1 className="text-xl font-semibold mb-4">Delivery Routes</h1>
+      <label htmlFor="route-date" className="text-sm text-gray-600">Route Date</label>
+      <input
+        id="route-date"
+        type="date"
         value={selectedDate}
         onChange={(e) => setSelectedDate(e.target.value)}
+        className="border rounded p-2 ml-2"
       />
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={10}
-      >
-        {orders.map(order => {
-          const coordinates = getCoordinates(order.address);
-          return coordinates ? (
-            <Marker 
-              key={order.id} 
-              position={coordinates} 
-              title={`Order #${order.id}`}
-            />
-          ) : null;
-        })}
-      </GoogleMap>
+
+      <div className="mt-4 w-full h-[700px]">
+        <Map
+          center={center}
+          zoom={12}
+          routes={[{ vehicleId: 'demo-vehicle', stops: routeStops, color: '#1a73e8' }]}
+          showTraffic
+        />
+      </div>
     </div>
-  ) : <p>Loading Map...</p>;
+  );
 };
 
 export default AdminRoutes;

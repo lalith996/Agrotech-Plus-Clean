@@ -6,35 +6,45 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting seed...')
 
-  // Create admin user
-  const adminUser = await prisma.user.create({
-    data: {
+  // Create or update admin user
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@agrotrack.com' },
+    update: {},
+    create: {
       name: 'Admin User',
       email: 'admin@agrotrack.com',
       role: UserRole.ADMIN,
+      emailVerified: new Date(),
     },
   })
 
-  // Create operations user
-  const opsUser = await prisma.user.create({
-    data: {
+  // Create or update operations user
+  const opsUser = await prisma.user.upsert({
+    where: { email: 'ops@agrotrack.com' },
+    update: {},
+    create: {
       name: 'Operations Manager',
       email: 'ops@agrotrack.com',
       role: UserRole.OPERATIONS,
+      emailVerified: new Date(),
     },
   })
 
-  // Create sample farmers
-  const farmer1User = await prisma.user.create({
-    data: {
+  // Create or update sample farmers
+  const farmer1User = await prisma.user.upsert({
+    where: { email: 'farmer1@agrotrack.com' },
+    update: {},
+    create: {
       name: 'Green Valley Farm',
       email: 'farmer1@agrotrack.com',
       role: UserRole.FARMER,
     },
   })
 
-  const farmer1 = await prisma.farmer.create({
-    data: {
+  const farmer1 = await prisma.farmer.upsert({
+    where: { userId: farmer1User.id },
+    update: {},
+    create: {
       userId: farmer1User.id,
       farmName: 'Green Valley Organic Farm',
       location: 'Bangalore Rural, Karnataka',
@@ -44,16 +54,20 @@ async function main() {
     },
   })
 
-  const farmer2User = await prisma.user.create({
-    data: {
+  const farmer2User = await prisma.user.upsert({
+    where: { email: 'farmer2@agrotrack.com' },
+    update: {},
+    create: {
       name: 'Sunrise Farms',
       email: 'farmer2@agrotrack.com',
       role: UserRole.FARMER,
     },
   })
 
-  const farmer2 = await prisma.farmer.create({
-    data: {
+  const farmer2 = await prisma.farmer.upsert({
+    where: { userId: farmer2User.id },
+    update: {},
+    create: {
       userId: farmer2User.id,
       farmName: 'Sunrise Organic Farms',
       location: 'Mysore, Karnataka',
@@ -63,22 +77,47 @@ async function main() {
     },
   })
 
+  // Create files for certifications
+  const file1 = await prisma.file.create({
+    data: {
+      originalName: 'green-valley-organic.pdf',
+      url: '/certifications/green-valley-organic.pdf',
+      mimeType: 'application/pdf',
+      size: 1024,
+      uploadedBy: farmer1User.id,
+      s3Key: 'certifications/green-valley-organic.pdf',
+    },
+  })
+
+  const file2 = await prisma.file.create({
+    data: {
+      originalName: 'sunrise-organic.pdf',
+      url: '/certifications/sunrise-organic.pdf',
+      mimeType: 'application/pdf',
+      size: 1024,
+      uploadedBy: farmer2User.id,
+      s3Key: 'certifications/sunrise-organic.pdf',
+    },
+  })
+
   // Create certifications for farmers
   await prisma.certification.createMany({
     data: [
       {
         farmerId: farmer1.id,
         name: 'Organic Certification',
-        issuedBy: 'India Organic Certification Agency',
-        issuedDate: new Date('2023-01-15'),
+        issuingBody: 'India Organic Certification Agency',
+        issueDate: new Date('2023-01-15'),
         expiryDate: new Date('2026-01-15'),
+        fileId: file1.id,
       },
       {
         farmerId: farmer2.id,
         name: 'Organic Certification',
-        issuedBy: 'APEDA Organic',
-        issuedDate: new Date('2023-03-20'),
+        issuingBody: 'APEDA Organic',
+        issueDate: new Date('2023-03-20'),
         expiryDate: new Date('2026-03-20'),
+        fileId: file2.id,
       },
     ],
   })
@@ -135,31 +174,39 @@ async function main() {
   })
 
   // Create sample customers
-  const customer1User = await prisma.user.create({
-    data: {
+  const customer1User = await prisma.user.upsert({
+    where: { email: 'priya@example.com' },
+    update: {},
+    create: {
       name: 'Priya Sharma',
       email: 'priya@example.com',
       role: UserRole.CUSTOMER,
     },
   })
 
-  const customer1 = await prisma.customer.create({
-    data: {
+  const customer1 = await prisma.customer.upsert({
+    where: { userId: customer1User.id },
+    update: {},
+    create: {
       userId: customer1User.id,
       phone: '+91-9876543212',
     },
   })
 
-  const customer2User = await prisma.user.create({
-    data: {
+  const customer2User = await prisma.user.upsert({
+    where: { email: 'rajesh@example.com' },
+    update: {},
+    create: {
       name: 'Rajesh Kumar',
       email: 'rajesh@example.com',
       role: UserRole.CUSTOMER,
     },
   })
 
-  const customer2 = await prisma.customer.create({
-    data: {
+  const customer2 = await prisma.customer.upsert({
+    where: { userId: customer2User.id },
+    update: {},
+    create: {
       userId: customer2User.id,
       phone: '+91-9876543213',
     },

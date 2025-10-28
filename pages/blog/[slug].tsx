@@ -1,11 +1,10 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/router"
-import { MainLayout } from "@/components/layout/main-layout"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight } from "lucide-react"
-import { FaWhatsapp } from "react-icons/fa"
+import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react"
 
 const blogPostsData: Record<string, any> = {
   "organic-farming-benefits": {
@@ -109,7 +108,7 @@ export default function BlogArticlePage() {
 
   if (!post) {
     return (
-      <MainLayout>
+      <>
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Article Not Found</h1>
           <p className="text-gray-600 mb-8">The article you're looking for doesn't exist.</p>
@@ -120,7 +119,7 @@ export default function BlogArticlePage() {
             </Button>
           </Link>
         </div>
-      </MainLayout>
+      </>
     )
   }
 
@@ -138,7 +137,7 @@ export default function BlogArticlePage() {
   }
 
   return (
-    <MainLayout>
+    <>
       <div className="bg-white">
         {/* Back Button */}
         <div className="container mx-auto px-4 pt-8">
@@ -189,10 +188,13 @@ export default function BlogArticlePage() {
 
               {/* Hero Image */}
               <div className="relative h-96 md:h-[500px] rounded-3xl overflow-hidden mb-12 shadow-2xl">
-                <img
+                <Image
                   src={post.image}
                   alt={post.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1000px"
+                  priority
                 />
               </div>
 
@@ -208,6 +210,7 @@ export default function BlogArticlePage() {
                     size="sm"
                     onClick={() => handleShare('facebook')}
                     className="rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600"
+                    aria-label="Share on Facebook"
                   >
                     <Facebook className="w-4 h-4" />
                   </Button>
@@ -216,6 +219,7 @@ export default function BlogArticlePage() {
                     size="sm"
                     onClick={() => handleShare('twitter')}
                     className="rounded-full hover:bg-sky-50 hover:text-sky-600 hover:border-sky-600"
+                    aria-label="Share on Twitter"
                   >
                     <Twitter className="w-4 h-4" />
                   </Button>
@@ -224,19 +228,17 @@ export default function BlogArticlePage() {
                     size="sm"
                     onClick={() => handleShare('whatsapp')}
                     className="rounded-full hover:bg-green-50 hover:text-green-600 hover:border-green-600"
+                    aria-label="Share on WhatsApp"
                   >
-                    <FaWhatsapp className="w-4 h-4" />
+                    <MessageCircle className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
 
               {/* Article Content */}
               <div 
-                className="prose prose-lg max-w-none mb-12"
+                className="prose prose-lg max-w-none mb-12 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: post.content }}
-                style={{
-                  lineHeight: '1.8',
-                }}
               />
 
               {/* Author Bio */}
@@ -277,10 +279,12 @@ export default function BlogArticlePage() {
                       <Link href={`/blog/${relatedPost.slug}`}>
                         <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group">
                           <div className="relative h-48 overflow-hidden">
-                            <img
+                            <Image
                               src={relatedPost.image}
                               alt={relatedPost.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
                             <div className="absolute top-4 right-4">
                               <Badge className="bg-[#00B207] text-white">
@@ -307,6 +311,6 @@ export default function BlogArticlePage() {
           </section>
         </article>
       </div>
-    </MainLayout>
+    </>
   )
 }

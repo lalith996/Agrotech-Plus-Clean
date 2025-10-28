@@ -31,7 +31,7 @@ export const config = {
 // Promisify multer
 const multerMiddleware = (req: any, res: any) => {
   return new Promise((resolve, reject) => {
-    upload.array('files')(req, res, (err) => {
+    upload.array('files')(req, res, (err: any) => {
       if (err) reject(err)
       else resolve(req.files)
     })
@@ -132,19 +132,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Save file record to database
           const fileRecord = await prisma.file.create({
             data: {
-              filename: uploadResult.key || file.originalname,
               originalName: uploadResult.originalName || file.originalname,
               mimeType: uploadResult.type || file.mimetype,
               size: uploadResult.size || file.size,
-              url: uploadResult.url || '',
-              thumbnails: uploadResult.thumbnails ? uploadResult.thumbnails.map(url => ({ url, name: 'thumbnail' })) : undefined,
-              metadata: metadata,
-              encrypted: true,
-              virusScanned: config.requireVirusScan,
-              category: config.folder,
-              entityType: entityType,
-              entityId: entityId,
-              uploadedBy: session.user.id
+              s3Key: uploadResult.key as string,
+              url: uploadResult.url as string,
+              optimizedUrl: uploadResult.url,
+              thumbnailUrl: uploadResult.thumbnails?.[0],
+              uploadedBy: session.user.id,
             }
           })
 

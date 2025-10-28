@@ -33,6 +33,7 @@ interface RecordingItem extends AudioRecording {
   id: string
   isPlaying: boolean
   currentTime: number
+  timestamp: number
 }
 
 export function VoiceRecorder({
@@ -113,7 +114,8 @@ export function VoiceRecorder({
         ...recording,
         id: `recording-${Date.now()}`,
         isPlaying: false,
-        currentTime: 0
+        currentTime: 0,
+        timestamp: Date.now()
       }
       
       setRecordings(prev => [recordingItem, ...prev])

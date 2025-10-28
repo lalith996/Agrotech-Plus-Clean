@@ -22,6 +22,8 @@ export type Vehicle = {
   workingHours?: { start: string; end: string };
   costPerKm?: number;
   costPerHour?: number;
+  // Added to support dynamic-routing usage
+  capabilities?: Record<string, boolean>;
 };
 
 export type OptimizeOptions = {
@@ -36,6 +38,22 @@ export type OptimizeOptions = {
   realTimeTraffic?: boolean;
   weatherConsiderations?: boolean;
 };
+
+export interface RouteWaypoint {
+  location: {
+    coordinates: Coordinates;
+  };
+  distanceFromPrevious?: number;
+}
+
+export interface OptimizedRoute {
+  vehicleId: string;
+  totalDistance: number;
+  totalTime: number;
+  totalCost: number;
+  locations?: DeliveryLocation[];
+  waypoints?: RouteWaypoint[];
+}
 
 export const routeOptimizer = {
   async optimizeRoutes(

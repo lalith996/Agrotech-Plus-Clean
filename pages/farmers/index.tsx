@@ -72,10 +72,28 @@ export default function FarmersDirectory() {
     setIsLoading(true)
     try {
       const response = await fetch("/api/farmers")
-      if (!response.ok) throw new Error("Failed to fetch farmers")
-      
-      const result = await response.json()
-      setFarmers(result.farmers || [])
+      const contentType = response.headers.get("content-type") || ""
+
+      if (!response.ok || !contentType.includes("application/json")) {
+        console.warn("Non-JSON response for /api/farmers", {
+          status: response.status,
+          url: response.url,
+          redirected: response.redirected,
+        })
+        setFarmers([])
+        return
+      }
+
+      let result: any
+      try {
+        result = await response.json()
+      } catch (e) {
+        console.error("Failed to parse farmers JSON:", e)
+        setFarmers([])
+        return
+      }
+
+      setFarmers(Array.isArray(result.farmers) ? result.farmers : [])
     } catch (error) {
       console.error("Error fetching farmers:", error)
       setFarmers([])

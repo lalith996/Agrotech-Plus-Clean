@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Clock, ChevronRight, ChevronLeft } from "lucide-react"
@@ -139,7 +138,7 @@ export default function BlogPage() {
   const currentPosts = remainingPosts.slice(startIndex, endIndex)
 
   return (
-    <MainLayout>
+    <>
       <div className="bg-white">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-green-50 to-white py-16 md:py-20">
@@ -372,16 +371,16 @@ export default function BlogPage() {
               <p className="text-gray-600 text-lg mb-8">
                 Get the latest articles, recipes, and farming tips delivered to your inbox every week.
               </p>
-              <a
+              <Link
                 href="/#newsletter"
                 className="inline-flex items-center justify-center px-8 py-4 bg-[#00B207] text-white rounded-full font-semibold hover:bg-green-700 transition-colors shadow-lg"
               >
                 Subscribe Now
-              </a>
+              </Link>
             </motion.div>
           </div>
         </section>
       </div>
-    </MainLayout>
+    </>
   )
 }

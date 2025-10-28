@@ -1,0 +1,12 @@
+{
+  "leafy greens": ["tomatoes", "bell peppers", "citrus"],
+  "citrus": ["leafy greens", "fish", "avocado"],
+  "berries": ["yogurt", "granola", "stone fruits"],
+  "stone fruits": ["berries", "yogurt", "leafy greens"],
+  "melons": ["prosciutto", "mint", "berries"],
+  "tomatoes": ["leafy greens", "mozzarella", "basil"],
+  "peppers": ["leafy greens", "onions", "tomatoes"],
+  "apples": ["pears", "granola", "cheddar"],
+  "pears": ["apples", "blue cheese", "nuts"],
+  "squash": ["sage", "brown butter", "leafy greens"]
+}

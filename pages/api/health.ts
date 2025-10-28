@@ -47,7 +47,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const uptime = process.uptime()
 
     // Overall health status
-    const isHealthy = dbStatus === 'up' && memoryPercentage < 90
+    // In development, memory usage can be higher due to hot reloading
+    const memoryThreshold = process.env.NODE_ENV === 'production' ? 90 : 98
+    const isHealthy = dbStatus === 'up' && memoryPercentage < memoryThreshold
 
     const healthCheck: HealthCheck = {
       status: isHealthy ? 'healthy' : 'unhealthy',

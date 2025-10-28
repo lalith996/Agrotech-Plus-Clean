@@ -1,65 +1,56 @@
-'use client'
+import React from 'react'
+import { Rocket, Truck, BarChart3 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Reveal } from "@/components/motion/reveal"
-import { motion } from "framer-motion"
-import { RocketLaunchIcon, TruckIcon, ChartBarIcon } from "@heroicons/react/24/solid"
+interface FeatureItem {
+  title: string
+  description: string
+  icon: React.ReactNode
+}
 
-const features = [
+const features: FeatureItem[] = [
   {
-    id: 'traceability',
-    icon: RocketLaunchIcon,
-    title: "Traceability",
-    description: "Scan & verify journey"
+    title: 'Rapid Growth',
+    description: 'Accelerate your agri-business with data-driven insights and AI-powered recommendations to maximize yield and efficiency.',
+    icon: <Rocket aria-hidden="true" className="h-6 w-6" />
   },
   {
-    id: 'smart-routing',
-    icon: TruckIcon,
-    title: "Smart Routing",
-    description: "On-time perishables"
+    title: 'Efficient Logistics',
+    description: 'Streamline operations with real-time tracking, optimized routes, and intelligent resource allocation.',
+    icon: <Truck aria-hidden="true" className="h-6 w-6" />
   },
   {
-    id: 'forecasting',
-    icon: ChartBarIcon,
-    title: "Forecasting",
-    description: "Balance demand & supply"
+    title: 'Actionable Analytics',
+    description: 'Visualize performance with customizable dashboards and reports using advanced analytics.',
+    icon: <BarChart3 aria-hidden="true" className="h-6 w-6" />
   }
 ]
 
-export function FeatureGrid() {
+export function FeatureGrid({ className }: { className?: string }) {
   return (
-    <section className="py-20 container mx-auto px-4" aria-labelledby="features-heading">
-      <div className="sr-only">
-        <h2 id="features-heading">AgroTrack+ Features</h2>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8" role="list">
-        {features.map((feature, index) => (
-          <Reveal key={feature.id} variant="fadeUp" delay={index * 0.1}>
-            <motion.div
-              whileHover={{ 
-                y: -8,
-                rotateX: 2,
-                rotateY: 2,
-              }}
-              transition={{ duration: 0.22 }}
-              className="h-full"
-              role="listitem"
-            >
-              <Card className="glass-card h-full hover:shadow-glow transition-all duration-300 focus-within:ring-2 focus-within:ring-brand focus-within:ring-offset-2" tabIndex={0} role="article" aria-labelledby={`feature-${feature.id}`}>
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 p-3 rounded-full bg-brand/10">
-                    <feature.icon className="w-8 h-8 text-brand" />
-                  </div>
-                  <CardTitle className="text-xl" id={`feature-${feature.id}`}>{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Reveal>
-        ))}
-      </div>
+    <section
+      className={cn('grid grid-cols-1 gap-6 md:grid-cols-3', className)}
+      aria-label="Key product features"
+    >
+      {features.map((feature, idx) => (
+        <Card key={idx}>
+          <CardContent className="p-6">
+            <div className="flex items-start space-x-3">
+              <div
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-emerald-50"
+                aria-hidden="true"
+              >
+                {feature.icon}
+              </div>
+              <div>
+                <h3 className="text-base font-semibold leading-6 text-gray-900">{feature.title}</h3>
+                <p className="mt-2 text-sm text-gray-600">{feature.description}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </section>
   )
 }

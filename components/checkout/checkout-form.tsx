@@ -1,5 +1,5 @@
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 
 const CheckoutForm = () => {
   const stripe = useStripe();
@@ -7,7 +7,7 @@ const CheckoutForm = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!stripe || !elements) {
@@ -28,9 +28,15 @@ const CheckoutForm = () => {
 
     const clientSecret = await res.text();
 
+    const cardElement = elements.getElement(CardElement);
+    
+    if (!cardElement) {
+      return;
+    }
+
     const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
-        card: elements.getElement(CardElement),
+        card: cardElement,
       },
     });
 

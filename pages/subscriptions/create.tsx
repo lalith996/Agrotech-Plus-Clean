@@ -83,17 +83,54 @@ export default function CreateSubscription() {
         fetch("/api/delivery-zones")
       ])
 
-      if (!productsResponse.ok || !zonesResponse.ok) {
-        throw new Error("Failed to fetch data")
+      const prodCT = productsResponse.headers.get("content-type") || ""
+      const zonesCT = zonesResponse.headers.get("content-type") || ""
+
+      if (!productsResponse.ok || !prodCT.includes("application/json")) {
+        console.warn("Non-JSON or error response for /api/products", {
+          status: productsResponse.status,
+          url: productsResponse.url,
+          redirected: productsResponse.redirected,
+        })
+        if (productsResponse.redirected || productsResponse.url.includes("/auth/signin")) {
+          setError("Please sign in to view products")
+          router.push("/auth/signin")
+          return
+        }
       }
 
-      const [productsData, zonesData] = await Promise.all([
-        productsResponse.json(),
-        zonesResponse.json()
-      ])
+      if (!zonesResponse.ok || !zonesCT.includes("application/json")) {
+        console.warn("Non-JSON or error response for /api/delivery-zones", {
+          status: zonesResponse.status,
+          url: zonesResponse.url,
+          redirected: zonesResponse.redirected,
+        })
+        if (zonesResponse.redirected || zonesResponse.url.includes("/auth/signin")) {
+          setError("Please sign in to view delivery zones")
+          router.push("/auth/signin")
+          return
+        }
+      }
 
-      setProducts(productsData.products)
-      setDeliveryZones(zonesData.zones)
+      let productsData: any = { products: [] }
+      let zonesData: any = { zones: [] }
+      try {
+        if (prodCT.includes("application/json")) {
+          productsData = await productsResponse.json()
+        }
+      } catch (e) {
+        console.error("Failed to parse products JSON:", e)
+      }
+      try {
+        if (zonesCT.includes("application/json")) {
+          zonesData = await zonesResponse.json()
+        }
+      } catch (e) {
+        console.error("Failed to parse zones JSON:", e)
+      }
+
+      setProducts(Array.isArray(productsData.products) ? productsData.products : [])
+      setDeliveryZones(Array.isArray(zonesData.zones) ? zonesData.zones : [])
     } catch (error) {
       console.error("Error fetching data:", error)
       setError("Failed to load data")

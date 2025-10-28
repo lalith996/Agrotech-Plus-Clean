@@ -138,7 +138,7 @@ export default function FarmerProducts() {
             <p className="text-gray-600">Manage your product listings and availability</p>
           </div>
           <Link href="/farmer/products/new">
-            <Button className="bg-[#00B207] hover:bg-green-700 rounded-xl">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl">
               <Plus className="w-4 h-4 mr-2" />
               Add Product
             </Button>
@@ -204,7 +204,7 @@ export default function FarmerProducts() {
                   <div className="absolute top-3 right-3">
                     <Badge 
                       variant={product.isActive ? "default" : "secondary"}
-                      className={product.isActive ? "bg-[#00B207]" : ""}
+                      className={product.isActive ? "bg-emerald-600" : ""}
                     >
                       {product.isActive ? "Active" : "Inactive"}
                     </Badge>
@@ -230,7 +230,7 @@ export default function FarmerProducts() {
                     
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="text-xl font-bold text-[#00B207]">
+                        <span className="text-xl font-bold text-emerald-600">
                           {formatPrice(product.basePrice)}
                         </span>
                         <span className="text-sm text-gray-500 ml-1">
@@ -243,11 +243,27 @@ export default function FarmerProducts() {
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={product.isActive}
-                          onCheckedChange={(checked) => toggleProductStatus(product.id, checked)}
+                          onCheckedChange={(checked: boolean) => toggleProductStatus(product.id, checked)}
                         />
                         <span className="text-sm text-gray-600">
                           {product.isActive ? "Active" : "Inactive"}
                         </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Link href={`/farmer/products/${product.id}/edit`}>
+                          <Button variant="outline" size="icon" className="h-8 w-8">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleDeleteProduct(product.id, product.name)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
 

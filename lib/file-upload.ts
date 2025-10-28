@@ -1,4 +1,5 @@
 import AWS from 'aws-sdk';
+// import type { PutObjectRequest, DeleteObjectRequest } from 'aws-sdk/clients/s3';
 import sharp from 'sharp';
 import { createHash } from 'crypto';
 import path from 'path';
@@ -264,8 +265,8 @@ class S3StorageService {
     const result = await s3.upload(uploadParams).promise();
     
     return {
-      url: result.Location,
-      key: result.Key
+      url: result.Location!,
+      key: result.Key!
     };
   }
 
@@ -288,7 +289,7 @@ class S3StorageService {
     };
 
     const result = await s3.upload(uploadParams).promise();
-    return result.Location;
+    return result.Location!;
   }
 
   /**

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 import * as SliderPrimitive from "@radix-ui/react-slider"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import { Popover as PopoverModule } from "@radix-ui/react-popover"
 import { DayPicker } from "react-day-picker"
 import {
   Search,
@@ -113,14 +113,14 @@ const Slider = React.forwardRef<
   </SliderPrimitive.Root>
 ))
 
-const Popover = PopoverPrimitive.Root
-const PopoverTrigger = PopoverPrimitive.Trigger
+const Popover = PopoverModule
+const PopoverTrigger = PopoverModule.Trigger
 const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+  React.ElementRef<typeof PopoverModule.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverModule.Content>
 >(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
+  <PopoverModule.Portal>
+    <PopoverModule.Content
       ref={ref}
       align={align}
       sideOffset={sideOffset}
@@ -130,7 +130,7 @@ const PopoverContent = React.forwardRef<
       )}
       {...props}
     />
-  </PopoverPrimitive.Portal>
+  </PopoverModule.Portal>
 ))
 
 const Calendar = ({ className, classNames, showOutsideDays = true, ...props }: React.ComponentProps<typeof DayPicker>) => {

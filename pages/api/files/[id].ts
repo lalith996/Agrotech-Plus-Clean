@@ -59,8 +59,6 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse, fileId: s
 
 async function handleUpdate(req: NextApiRequest, res: NextApiResponse, fileId: string, userId: string) {
   try {
-    const { description, category, entityType, entityId } = req.body;
-
     // Verify file ownership
     const existingFile = await prisma.file.findFirst({
       where: {
@@ -73,24 +71,11 @@ async function handleUpdate(req: NextApiRequest, res: NextApiResponse, fileId: s
       return res.status(404).json({ error: 'File not found or access denied' });
     }
 
-    // Update file metadata
-    const updatedFile = await prisma.file.update({
-      where: { id: fileId },
-      data: {
-        category: category || existingFile.category,
-        entityType: entityType || existingFile.entityType,
-        entityId: entityId || existingFile.entityId,
-        metadata: {
-          ...existingFile.metadata as any,
-          description
-        }
-      }
-    });
-
-    res.status(200).json({ 
+    // No schema-backed fields to update here; return existing file
+    return res.status(200).json({ 
       success: true, 
-      message: 'File updated successfully',
-      file: updatedFile
+      message: 'No updatable fields in current schema; returning existing file.',
+      file: existingFile
     });
   } catch (error) {
     console.error('Update file error:', error);

@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  ml-service:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile.service
+    environment:
+      - ML_SERVICE_API_KEY=${ML_SERVICE_API_KEY}
+      - AUTO_TUNING=${AUTO_TUNING:-true}
+      - RETRAIN_INTERVAL_DAYS=${RETRAIN_INTERVAL_DAYS:-7}
+      - PERFORMANCE_THRESHOLD=${PERFORMANCE_THRESHOLD:-0.85}
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  ml-worker:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile.worker
+    environment:
+      - ENABLE_SELF_TRAINING=${ENABLE_SELF_TRAINING:-true}
+      - ENABLE_SYNTHETIC_DATA=${ENABLE_SYNTHETIC_DATA:-true}
+      - SYNTHETIC_SCALING_FACTOR=${SYNTHETIC_SCALING_FACTOR:-2.0}
+      - SYNTHETIC_DATA_TYPES=${SYNTHETIC_DATA_TYPES:-orders,qcResults,subscriptions,userBehaviors}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts
+    volumes:
+      - ./ml/mlflow:/mlflow

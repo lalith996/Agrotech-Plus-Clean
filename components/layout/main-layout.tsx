@@ -1,7 +1,7 @@
 "use client"
 
 import { SessionProvider } from "next-auth/react"
-import { Header } from "./header"
+import { RoleBasedHeader } from "./role-based-header"
 import { Footer } from "./footer"
 import Chatbot from "../Chatbot"; // Corrected import path
 
@@ -14,7 +14,7 @@ export function MainLayout({ children, session }: MainLayoutProps) {
   return (
     <SessionProvider session={session}>
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <Header />
+        <RoleBasedHeader />
         <main className="flex-1">
           {children}
         </main>

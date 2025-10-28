@@ -2,10 +2,20 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { openDB } from 'idb';
 
+interface QCEntry {
+  farmerDeliveryId: string;
+  productId: string;
+  acceptedQuantity: number;
+  rejectedQuantity: number;
+  rejectionReasons?: string[];
+  notes?: string;
+  timestamp: string;
+}
+
 const QCOffline = () => {
   const { data: session } = useSession();
   const [isOffline, setIsOffline] = useState(false);
-  const [entries, setEntries] = useState([]);
+  const [entries, setEntries] = useState<QCEntry[]>([]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -56,19 +66,20 @@ const QCOffline = () => {
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newEntry = {
-      farmerDeliveryId: formData.get('farmerDeliveryId'),
-      productId: formData.get('productId'),
-      acceptedQuantity: formData.get('acceptedQuantity'),
-      rejectedQuantity: formData.get('rejectedQuantity'),
-      rejectionReasons: formData.get('rejectionReasons')?.split(',').map(s => s.trim()),
-      notes: formData.get('notes'),
+    const rejectionReasonsVal = formData.get('rejectionReasons');
+    const newEntry: QCEntry = {
+      farmerDeliveryId: String(formData.get('farmerDeliveryId') || ''),
+      productId: String(formData.get('productId') || ''),
+      acceptedQuantity: Number(formData.get('acceptedQuantity') || 0),
+      rejectedQuantity: Number(formData.get('rejectedQuantity') || 0),
+      rejectionReasons: typeof rejectionReasonsVal === 'string' ? rejectionReasonsVal.split(',').map((s: string) => s.trim()) : undefined,
+      notes: typeof formData.get('notes') === 'string' ? String(formData.get('notes')) : undefined,
       timestamp: new Date().toISOString(),
     };
 
     if (isOffline) {
       const db = await openDB('qc-offline-db', 1, {
-        upgrade(db) {
+        upgrade(db: IDBDatabase) {
           db.createObjectStore('qc-entries', { autoIncrement: true });
         },
       });

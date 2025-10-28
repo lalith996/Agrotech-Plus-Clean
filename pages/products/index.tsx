@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
 import Image from "next/image"
@@ -41,6 +41,8 @@ interface Product {
   unit: string
   isActive: boolean
   rating: number
+  createdAt?: string
+  updatedAt?: string
   farmer: {
     id: string
     farmName: string
@@ -99,12 +101,7 @@ export default function Products() {
     rating: true,
   })
 
-  useEffect(() => {
-    fetchProducts()
-    fetchFarmers()
-  }, [selectedCategories, priceRange, selectedFarmers, availabilityFilter, ratingFilter, sortBy, currentPage])
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     try {
       const params = new URLSearchParams()
@@ -154,9 +151,9 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
-  const fetchFarmers = async () => {
+  const fetchFarmers = useCallback(async () => {
     try {
       const response = await fetch('/api/farmers')
       if (!response.ok) {
@@ -173,7 +170,15 @@ export default function Products() {
       console.error("Error fetching farmers:", error)
       setFarmers([])
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
+
+  useEffect(() => {
+    fetchFarmers()
+  }, [fetchFarmers])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -491,6 +496,8 @@ export default function Products() {
                         <button
                           onClick={() => handleWishlistToggle(product)}
                           className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
+                          aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                          title={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                         >
                           <Heart
                             className={`w-5 h-5 transition-colors ${
@@ -501,6 +508,8 @@ export default function Products() {
                         <button
                           onClick={() => handleQuickView(product)}
                           className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
+                          aria-label="Quick view product"
+                          title="Quick view"
                         >
                           <Eye className="w-5 h-5 text-gray-600" />
                         </button>

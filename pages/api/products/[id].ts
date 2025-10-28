@@ -1,8 +1,9 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "next-auth/react";
-import { productSchema } from "@/lib/validations";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { productUpdateSchema } from "@/lib/validations";
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +12,7 @@ export default async function handler(
   const { id } = req.query;
   const productId = id as string;
 
-  const session = await getSession({ req });
+  const session = await getServerSession(req, res, authOptions);
 
   if (!session || session.user.role !== "FARMER") {
     return res.status(401).json({ message: "Unauthorized" });
@@ -42,14 +43,13 @@ export default async function handler(
 
   if (req.method === "PUT") {
     try {
-      const validatedData = productSchema.parse(req.body);
+      const validatedData = productUpdateSchema.parse(req.body);
       const updatedProduct = await prisma.product.update({
         where: { id: productId },
         data: validatedData,
       });
       res.status(200).json(updatedProduct);
     } catch (error: any) {
-      console.error("Product update error:", error);
       if (error.name === "ZodError") {
         return res
           .status(400)
@@ -64,7 +64,6 @@ export default async function handler(
       });
       res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
-      console.error("Product deletion error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   } else {

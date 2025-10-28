@@ -58,6 +58,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Demo Access Banner */}
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center gap-4 flex-wrap text-sm md:text-base">
+            <Sparkles className="h-5 w-5" />
+            <span className="font-medium">Want to try without signing up?</span>
+            <Link href="/demo-login">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-green-600 transition-all"
+              >
+                Use Demo Login →
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-earth-50 py-24 lg:py-32">
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-5"></div>

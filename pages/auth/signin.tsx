@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
@@ -49,7 +50,19 @@ export default function SignIn() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    await signIn("google", { callbackUrl: "/dashboard" });
+    setError("");
+    try {
+      const result = await signIn("google", { redirect: false, callbackUrl: "/dashboard" });
+      if (!result || result.error || result.ok === false) {
+        setError("Google sign-in is only allowed for Customer accounts.");
+      } else if (result.url) {
+        router.push(result.url);
+      }
+    } catch (e) {
+      setError("Google sign-in failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,17 +75,27 @@ export default function SignIn() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {router.query.message && (
+            <Alert className="mb-4 bg-green-50 border-green-200">
+              <AlertDescription className="text-green-900 text-sm">
+                {String(router.query.message)}
+              </AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+              <p className="text-xs text-gray-600">
+                Enter your email address (personal or system-generated)
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -107,6 +130,9 @@ export default function SignIn() {
               </span>
             </div>
           </div>
+          <p className="text-xs text-gray-600 text-center mb-2">
+            Google sign-in is available for Customer accounts only. Admin, Operations, Farmer, and Driver must use email and password.
+          </p>
           <Button
             variant="outline"
             className="w-full"

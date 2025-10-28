@@ -1,0 +1,17 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic>=2.9.0
+celery==5.3.6
+redis==5.0.1
+# mlflow==2.10.0  # temporarily disabled due to numpy<2 constraint
+pandas==2.2.2
+numpy>=2.0
+scikit-learn>=1.5
+# Optional heavy deps (enable as needed)
+torch==2.9.0
+# tensorflow==2.14.0
+# prophet==1.1.5
+xgboost==2.0.3
+# sdv==1.10.0
+# ctgan==0.7.3
+faker==19.6.2

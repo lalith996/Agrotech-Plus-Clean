@@ -1,0 +1,14 @@
+{
+  "1": ["leafy greens", "citrus"],
+  "2": ["leafy greens", "citrus"],
+  "3": ["berries", "leafy greens"],
+  "4": ["berries", "stone fruits"],
+  "5": ["berries", "stone fruits"],
+  "6": ["stone fruits", "melons"],
+  "7": ["melons", "tomatoes"],
+  "8": ["tomatoes", "peppers"],
+  "9": ["apples", "pears"],
+  "10": ["apples", "squash"],
+  "11": ["squash", "citrus"],
+  "12": ["citrus", "leafy greens"]
+}

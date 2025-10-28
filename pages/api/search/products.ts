@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db-optimization'
 import { SearchEngine, PRODUCT_FILTERS } from '@/lib/search'
 import { cacheHelpers } from '@/lib/cache'
 import { z } from 'zod'
+import { mlClient, mlFallbacks } from '@/lib/ml-client'
+import { ML_FEATURES } from '@/lib/config/ml-endpoints'
 
 const searchSchema = z.object({
   query: z.string().optional(),
@@ -57,7 +59,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       searchOptions.query || '',
       searchOptions.filters || {},
       async () => {
-        // Try Elasticsearch first, fallback to database
+        // Try ML-powered smart search first if enabled and query exists
+        if (ML_FEATURES.smartSearch.enabled && searchOptions.query && searchOptions.query.length >= 2) {
+          try {
+            const mlSearchResult = await performMLSearch(
+              searchOptions,
+              session?.user?.id
+            );
+            
+            if (mlSearchResult) {
+              return mlSearchResult;
+            }
+          } catch (error) {
+            console.error('ML search failed, falling back to traditional search:', error);
+          }
+        }
+        
+        // Try Elasticsearch next, fallback to database
         const isElasticsearchAvailable = await SearchEngine.isElasticsearchAvailable();
         
         if (isElasticsearchAvailable && searchOptions.query) {
@@ -70,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       180 // 3 minutes cache
     );
 
-    // Track search query for analytics
+    // Track search query for analytics and ML learning
     if (searchOptions.query && session?.user?.id) {
       await trackSearchQuery(searchOptions.query, session.user.id, results.total);
     }
@@ -94,6 +112,86 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: 'Internal server error'
     })
   }
+}
+
+/**
+ * Perform ML-powered smart search with NLP processing
+ */
+async function performMLSearch(options: any, userId?: string) {
+  const { query, filters, page, limit, sortBy, sortOrder } = options;
+
+  // Call ML service for NLP-powered search
+  const mlResponse = await mlClient.search(
+    {
+      query,
+      filters,
+      userId,
+      limit: limit * 2, // Request more results for better ranking
+    },
+    // Fallback to basic search if ML service unavailable
+    async () => {
+      return await mlFallbacks.basicSearch(query, filters, limit * 2);
+    }
+  );
+
+  if (!mlResponse.success || !mlResponse.data) {
+    return null;
+  }
+
+  const { results, totalCount } = mlResponse.data;
+
+  // If ML service returned no results, return null to trigger fallback
+  if (!results || results.length === 0) {
+    return null;
+  }
+
+  // Fetch full product details for ML-ranked results
+  const productIds = results.map((r: any) => r.id);
+  
+  const products = await prisma.product.findMany({
+    where: {
+      id: { in: productIds },
+      isActive: true,
+      farmer: {
+        isApproved: true
+      }
+    },
+    include: {
+      farmer: {
+        select: {
+          id: true,
+          farmName: true,
+          location: true,
+          isApproved: true
+        }
+      }
+    }
+  });
+
+  // Sort products by ML relevance scores
+  const relevanceMap = new Map(results.map((r: any) => [r.id, r.relevance]));
+  const sortedProducts = products.sort((a, b) => {
+    const scoreA = relevanceMap.get(a.id) || 0;
+    const scoreB = relevanceMap.get(b.id) || 0;
+    return scoreB - scoreA;
+  });
+
+  // Apply pagination
+  const skip = (page - 1) * limit;
+  const paginatedProducts = sortedProducts.slice(skip, skip + limit);
+  const total = totalCount || sortedProducts.length;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    items: paginatedProducts,
+    total,
+    page,
+    limit,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+    mlPowered: !mlResponse.fallback, // Indicate if ML was used
+  };
 }
 
 async function performDatabaseProductSearch(options: any) {
@@ -208,6 +306,9 @@ async function performDatabaseProductSearch(options: any) {
   };
 }
 
+/**
+ * Track search query for analytics and ML learning
+ */
 async function trackSearchQuery(query: string, userId: string, results: number) {
   try {
     await prisma.searchQuery.create({

@@ -38,22 +38,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'OCR is only supported for images and PDF files' });
     }
 
-    // Check if OCR has already been processed
-    const existingOCR = (file.metadata as any)?.ocr;
-    if (existingOCR && req.body.force !== true) {
-      return res.status(200).json({
-        success: true,
-        message: 'OCR already processed',
-        ocrResult: existingOCR,
-        extractedData: (file.metadata as any)?.extractedData
-      });
-    }
+    // Download file from S3 using its key
+    const fileBuffer = await downloadFileFromS3(file.s3Key);
 
-    // Download file from S3
-    const fileBuffer = await downloadFileFromS3(file.filename);
-    
+    // Derive a simple category from mimeType
+    const category = file.mimeType.startsWith('image/') ? 'image' : 'document';
+
     // Process with OCR
-    const result = await OCRService.processFile(file.id, fileBuffer, file.category);
+    const result = await OCRService.processFile(file.id, fileBuffer, category);
 
     res.status(200).json({
       success: true,

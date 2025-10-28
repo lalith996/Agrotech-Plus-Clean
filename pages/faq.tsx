@@ -1,6 +1,6 @@
 import { useState } from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
-import { MainLayout } from "@/components/layout/main-layout"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -159,7 +159,6 @@ export default function FAQPage() {
   })).filter(category => category.faqs.length > 0)
 
   return (
-    <MainLayout>
       <div className="bg-white">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-green-50 to-white py-16 md:py-20">
@@ -204,9 +203,9 @@ export default function FAQPage() {
                 >
                   <p className="text-gray-600 text-lg">
                     No FAQs found matching "{searchQuery}". Please try different keywords or{" "}
-                    <a href="/contact" className="text-[#00B207] hover:underline font-semibold">
+                    <Link href="/contact" className="text-[#00B207] hover:underline font-semibold">
                       contact us
-                    </a>{" "}
+                    </Link>{" "}
                     for help.
                   </p>
                 </motion.div>
@@ -280,13 +279,13 @@ export default function FAQPage() {
                 Can't find the answer you're looking for? Our friendly customer support team is here to help.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
+                <Link
                   href="/contact"
                   className="inline-flex items-center justify-center px-8 py-4 bg-[#00B207] text-white rounded-full font-semibold hover:bg-green-700 transition-colors shadow-lg"
                 >
                   <Mail className="w-5 h-5 mr-2" />
                   Contact Support
-                </a>
+                </Link>
                 <a
                   href="tel:+918012345678"
                   className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#00B207] border-2 border-[#00B207] rounded-full font-semibold hover:bg-green-50 transition-colors shadow-lg"
@@ -298,6 +297,5 @@ export default function FAQPage() {
           </div>
         </section>
       </div>
-    </MainLayout>
   )
 }

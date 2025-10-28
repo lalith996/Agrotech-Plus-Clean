@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { FileUpload, UploadedFile } from "@/components/ui/file-upload"
+import FileUpload from "@/components/FileUpload"
 import { 
   File, 
   Image, 
@@ -26,7 +26,12 @@ import {
 import { UserRole } from "@prisma/client"
 import { toast } from "sonner"
 
-interface FileRecord extends UploadedFile {
+interface FileRecord {
+  id: string
+  originalName: string
+  type: string
+  size: number
+  url: string
   uploadedAt: string
   uploadedBy: {
     name: string
@@ -75,7 +80,29 @@ export default function FileManagement() {
       if (!response.ok) throw new Error("Failed to fetch files")
       
       const data = await response.json()
-      setFiles(data.files)
+      const apiFiles = (data.files || []) as Array<{
+        id: string
+        originalName: string
+        mimeType: string
+        size: number
+        url: string
+        category: string
+        createdAt: string | number | Date
+        uploadedByUser?: { name: string; email: string }
+      }>
+
+      const mapped: FileRecord[] = apiFiles.map(f => ({
+        id: f.id,
+        originalName: f.originalName,
+        type: f.mimeType,
+        size: f.size,
+        url: f.url,
+        folder: f.category,
+        uploadedAt: typeof f.createdAt === 'string' ? f.createdAt : new Date(f.createdAt).toISOString(),
+        uploadedBy: f.uploadedByUser ?? null,
+      }))
+
+      setFiles(mapped)
     } catch (error) {
       console.error("Error fetching files:", error)
       toast.error("Failed to load files")
@@ -213,11 +240,11 @@ export default function FileManagement() {
                     </Select>
                   </div>
                   <FileUpload
-                    uploadType={selectedUploadType}
-                    onUploadComplete={(uploadedFiles) => {
+                    accept={selectedUploadType === 'documents' ? 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'image/*'}
+                    onUploadSuccess={() => {
                       fetchFiles()
                       setUploadDialogOpen(false)
-                      toast.success(`Uploaded ${uploadedFiles.length} file(s)`)
+                      toast.success(`Uploaded 1 file`)
                     }}
                   />
                 </div>

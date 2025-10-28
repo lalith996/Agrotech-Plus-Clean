@@ -48,13 +48,13 @@ export default async function handler(
       })
 
       const coordinates = await geocodeAddress(validatedData);
-      if (coordinates) {
-        validatedData.latitude = coordinates.latitude;
-        validatedData.longitude = coordinates.longitude;
-      }
+      const dataWithCoords = {
+        ...validatedData,
+        ...(coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : {}),
+      };
 
       // If setting as default, unset other defaults
-      if (validatedData.isDefault) {
+      if (dataWithCoords.isDefault) {
         await prisma.address.updateMany({
           where: { customerId: customer.id, isDefault: true },
           data: { isDefault: false },
@@ -62,7 +62,7 @@ export default async function handler(
       }
 
       const address = await prisma.address.create({
-        data: validatedData,
+        data: dataWithCoords,
       })
 
       res.status(201).json({ address, message: "Address created successfully" })
@@ -96,13 +96,13 @@ export default async function handler(
       })
 
       const coordinates = await geocodeAddress(validatedData);
-      if (coordinates) {
-        validatedData.latitude = coordinates.latitude;
-        validatedData.longitude = coordinates.longitude;
-      }
+      const dataWithCoords = {
+        ...validatedData,
+        ...(coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : {}),
+      };
 
       // If setting as default, unset other defaults
-      if (validatedData.isDefault) {
+      if (dataWithCoords.isDefault) {
         await prisma.address.updateMany({
           where: { customerId: customer.id, isDefault: true, id: { not: id } },
           data: { isDefault: false },
@@ -111,7 +111,7 @@ export default async function handler(
 
       const address = await prisma.address.update({
         where: { id },
-        data: validatedData,
+        data: dataWithCoords,
       })
 
       res.status(200).json({ address, message: "Address updated successfully" })

@@ -1,10 +1,11 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 import { createWorker } from "tesseract.js";
+import type { Worker } from "tesseract.js";
 
 // This is a long-running process, so we should initialize the worker outside the handler
 // to cache it between invocations in a serverless environment.
-let worker: Tesseract.Worker | null = null;
+let worker: Worker | null = null;
 let workerReady = false;
 
 async function initializeWorker() {
@@ -12,9 +13,9 @@ async function initializeWorker() {
     worker = await createWorker();
   }
   if (!workerReady) {
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
+    if (worker.load) await worker.load();
+    if (worker.loadLanguage) await worker.loadLanguage('eng');
+    if (worker.initialize) await worker.initialize('eng');
     workerReady = true;
   }
   return worker;

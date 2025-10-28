@@ -122,7 +122,7 @@ export function QRScanner() {
                 <div>
                   <h4 className="font-semibold mb-4">Journey Timeline</h4>
                   <div className="space-y-4">
-                    {scannedData.journey.map((stage, index) => (
+                    {scannedData.journey.map((stage: { stage: string; date: Date; location: string }, index: number) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, x: -20 }}

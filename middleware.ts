@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { roleAccessControl } from './lib/role-access-control'
+import { UserRole } from '@prisma/client'
 
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
@@ -22,7 +24,7 @@ export async function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self'",
+    "connect-src 'self' ws: http://localhost:3000 http://127.0.0.1:8000 http://127.0.0.1:8001",
     "media-src 'self'",
     "object-src 'none'",
     "child-src 'none'",
@@ -42,7 +44,7 @@ export async function middleware(request: NextRequest) {
   
   // Rate limiting for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     const now = Date.now()
     const windowMs = 15 * 60 * 1000 // 15 minutes
     const maxRequests = 100 // requests per window
@@ -79,41 +81,139 @@ export async function middleware(request: NextRequest) {
     }
   }
   
-  // Authentication check for protected routes
-  const protectedPaths = [
-    '/dashboard',
-    '/profile',
-    '/orders',
-    '/subscriptions',
-    '/admin',
-    '/farmer/'
+  // Authentication and authorization check for protected routes
+  const pathname = request.nextUrl.pathname
+  
+  // Allow Vite dev client and assets to bypass auth checks
+  if (pathname.startsWith('/@vite/')) {
+    return response
+  }
+  
+  // Define public paths that don't require authentication
+  const publicPaths = [
+    '/',
+    '/auth/signin',
+    '/auth/signup',
+    '/auth/register',
+    '/auth/forgot-password',
+    '/auth/callback',
+    '/auth/error',
+    '/about',
+    '/contact',
+    '/faq',
+    '/blog',
+    '/products',
+    '/farmers',
+    '/demo-login',
+    '/landing-enhanced',
+    '/showcase',
+    '/index.agrotrack',
+    '/404',
+    '/403',
+    '/500',
+    '/_error',
+    '/offline',
+    '/api/auth',
+    '/api/health',
+    '/api/send-email',
+    '/images',
+    '/manifest.json',
+    '/sw.js',
+    '/workbox',
+    '/icons',
+    '/pattern.svg',
+    '/logo.svg',
+    '/hero-bg.jpg',
+    '/og-image.jpg'
   ]
   
-  const isProtectedPath = protectedPaths.some(path => 
-    request.nextUrl.pathname === path.replace('/', '') || request.nextUrl.pathname.startsWith(path)
+  // Check if path is public or starts with public path
+  const isPublicPath = publicPaths.some(path => 
+    pathname === path || 
+    (path !== '/' && pathname.startsWith(path + '/'))
+  )
+
+  // Public API GET endpoints (return JSON and should not redirect)
+  const publicApiGetPaths = [
+    '/api/health',
+    '/api/products',
+    '/api/farmers',
+  ]
+  const isPublicApiGet = request.method === 'GET' && publicApiGetPaths.some(path => 
+    pathname === path || pathname.startsWith(path + '/')
   )
   
-  if (isProtectedPath) {
+  // Skip auth check for public paths or public GET API endpoints
+  if (!isPublicPath && !isPublicApiGet) {
     const token = await getToken({ 
       req: request, 
       secret: process.env.NEXTAUTH_SECRET 
     })
     
+    // Respond 401 for API requests; redirect for pages
     if (!token) {
+      if (pathname.startsWith('/api/')) {
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'Unauthorized' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
       const loginUrl = new URL('/auth/signin', request.url)
       loginUrl.searchParams.set('callbackUrl', request.url)
+      
+      // Log unauthorized access attempt
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Middleware] Unauthorized access attempt to ${pathname}`)
+      }
+      
       return NextResponse.redirect(loginUrl)
     }
     
     // Role-based access control
-    const pathname = request.nextUrl.pathname
+    const userRole = token.role as UserRole
     
-    if (pathname.startsWith('/admin') && token.role !== 'ADMIN' && token.role !== 'OPERATIONS') {
-      return new NextResponse('Forbidden', { status: 403 })
+    if (!userRole) {
+      if (pathname.startsWith('/api/')) {
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'Unauthorized: missing role' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+      // If role is missing, redirect to sign-in
+      const loginUrl = new URL('/auth/signin', request.url)
+      loginUrl.searchParams.set('callbackUrl', request.url)
+      
+      console.error(`[Middleware] Missing role for user ${token.email}`)
+      
+      return NextResponse.redirect(loginUrl)
     }
     
-    if (pathname.startsWith('/farmer') && token.role !== 'FARMER') {
-      return new NextResponse('Forbidden', { status: 403 })
+    // Check if user's role can access this route
+    const canAccess = roleAccessControl.canAccessRoute(userRole, pathname)
+    
+    if (!canAccess) {
+      if (pathname.startsWith('/api/')) {
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'Forbidden' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+      // Get the appropriate dashboard for the user's role
+      const dashboardPath = roleAccessControl.getDashboardPath(userRole)
+      
+      // Log unauthorized access attempt
+      console.warn(
+        `[Middleware] Role-based access denied: ${userRole} attempted to access ${pathname}`
+      )
+      
+      // Redirect to role-specific dashboard
+      const redirectUrl = new URL(dashboardPath, request.url)
+      return NextResponse.redirect(redirectUrl)
+    }
+    
+    // Log successful authorization in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Middleware] Authorized: ${userRole} accessing ${pathname}`)
     }
   }
   

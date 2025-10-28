@@ -19,7 +19,7 @@ export function HeroSection() {
     transition: { 
       duration: 8, 
       repeat: isInView ? Infinity : 0, 
-      ease: "easeInOut" 
+      ease: [0.42, 0, 0.58, 1] as any
     }
   }), [isInView])
   
@@ -31,7 +31,7 @@ export function HeroSection() {
     transition: { 
       duration: 6, 
       repeat: isInView ? Infinity : 0, 
-      ease: "easeInOut",
+      ease: [0.42, 0, 0.58, 1] as any,
       delay: 2
     }
   }), [isInView])
