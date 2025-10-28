@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { FileUploadService } from '@/lib/file-upload';
+// File upload service removed - AWS S3 removed in clean version
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -22,19 +22,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       limit = '20' 
     } = req.query;
 
-    const filters = {
-      category: typeof category === 'string' ? category : undefined,
-      entityType: typeof entityType === 'string' ? entityType : undefined,
-      entityId: typeof entityId === 'string' ? entityId : undefined,
-      page: parseInt(page as string, 10),
-      limit: parseInt(limit as string, 10)
-    };
+    console.log('[Files List] File listing disabled - S3 removed:', {
+      userId: session.user.id,
+      category,
+      entityType,
+      entityId
+    });
 
-    const result = await FileUploadService.listFiles(session.user.id, filters);
-
+    // Return empty result since file storage is disabled
     res.status(200).json({
       success: true,
-      ...result
+      files: [],
+      total: 0,
+      page: parseInt(page as string, 10),
+      limit: parseInt(limit as string, 10)
     });
   } catch (error) {
     console.error('List files error:', error);

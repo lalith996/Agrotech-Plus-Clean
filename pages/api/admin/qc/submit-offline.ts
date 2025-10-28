@@ -78,55 +78,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const photoFiles = files.filter(f => f.fieldname.startsWith('photo_'));
         const audioFiles = files.filter(f => f.fieldname.startsWith('audio_'));
 
-        // Upload photos to storage
+        // File upload disabled - AWS S3 removed in clean version
+        // Photos and audio logged to console instead
+        console.log('[QC Offline] File upload attempted (disabled):', {
+            photoCount: photoFiles.length,
+            audioCount: audioFiles.length,
+            photos: photoFiles.map(f => ({ name: f.originalname, size: f.size })),
+            audio: audioFiles.map(f => ({ name: f.originalname, size: f.size }))
+        });
+
         const photoUrls: string[] = [];
-        for (const photoFile of photoFiles) {
-            try {
-                const uploadResult = await FileUploadService.uploadFile(
-                    photoFile.buffer,
-                    photoFile.originalname,
-                    photoFile.mimetype,
-                    {
-                        category: 'qc_photo',
-                        entityType: 'qc_result',
-                        entityId: farmerDeliveryId,
-                        userId: session.user.id
-                    }
-                );
-
-                if (uploadResult.success && uploadResult.file) {
-                    photoUrls.push(uploadResult.file.url);
-                }
-            } catch (error) {
-                console.error('Photo upload error:', error);
-                // Continue with other photos even if one fails
-            }
-        }
-
-        // Upload audio files to storage
         const audioUrls: string[] = [];
-        for (const audioFile of audioFiles) {
-            try {
-                const uploadResult = await FileUploadService.uploadFile(
-                    audioFile.buffer,
-                    audioFile.originalname,
-                    audioFile.mimetype,
-                    {
-                        category: 'audio_note',
-                        entityType: 'qc_result',
-                        entityId: farmerDeliveryId,
-                        userId: session.user.id
-                    }
-                );
-
-                if (uploadResult.success && uploadResult.file) {
-                    audioUrls.push(uploadResult.file.url);
-                }
-            } catch (error) {
-                console.error('Audio upload error:', error);
-                // Continue with other audio files even if one fails
-            }
-        }
 
         // Create QC offline entry record
         const qcOfflineEntry = await prisma.qCOfflineEntry.create({

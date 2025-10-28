@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { FileUploadService } from '@/lib/file-upload';
+// FileUploadService removed - AWS S3 removed in clean version
 import { prisma } from '@/lib/db-optimization';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -29,13 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, fileId: string, userId: string) {
   try {
-    const file = await FileUploadService.getFile(fileId, userId);
+    console.log('[File Get] File retrieval disabled - S3 removed:', { fileId, userId });
     
-    if (!file) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    res.status(200).json({ success: true, file });
+    res.status(501).json({ 
+      error: 'File retrieval not available - storage disabled in clean version' 
+    });
   } catch (error) {
     console.error('Get file error:', error);
     res.status(500).json({ error: 'Failed to retrieve file' });
@@ -44,13 +42,11 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, fileId: stri
 
 async function handleDelete(req: NextApiRequest, res: NextApiResponse, fileId: string, userId: string) {
   try {
-    const result = await FileUploadService.deleteFile(fileId, userId);
+    console.log('[File Delete] File deletion disabled - S3 removed:', { fileId, userId });
     
-    if (!result.success) {
-      return res.status(400).json({ error: result.error });
-    }
-
-    res.status(200).json({ success: true, message: 'File deleted successfully' });
+    res.status(501).json({ 
+      error: 'File deletion not available - storage disabled in clean version' 
+    });
   } catch (error) {
     console.error('Delete file error:', error);
     res.status(500).json({ error: 'Failed to delete file' });
