@@ -34,6 +34,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           size="icon"
           onClick={onMenuClick}
           className="lg:hidden"
+          aria-label="Open sidebar"
         >
           <Bars3CenterLeftIcon className="h-5 w-5" />
         </Button>
