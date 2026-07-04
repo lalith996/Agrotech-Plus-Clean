@@ -322,6 +322,8 @@ export function VoiceRecorder({
               <Button
                 onClick={stopRecording}
                 variant="destructive"
+                aria-label="Stop Recording"
+                title="Stop Recording"
                 size="lg"
                 className="rounded-full w-16 h-16"
               >
@@ -334,6 +336,8 @@ export function VoiceRecorder({
               <Button
                 onClick={startRecording}
                 disabled={hasPermission === null || recordings.length >= maxRecordings}
+                aria-label="Start Recording"
+                title="Start Recording"
                 size="lg"
                 className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600"
               >
@@ -367,6 +371,8 @@ export function VoiceRecorder({
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label={recording.isPlaying ? "Pause Recording" : "Play Recording"}
+                    title={recording.isPlaying ? "Pause Recording" : "Play Recording"}
                     onClick={() => playRecording(recording.id)}
                     className="flex-shrink-0"
                   >
@@ -410,6 +416,8 @@ export function VoiceRecorder({
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label="Download Recording"
+                      title="Download Recording"
                       onClick={() => downloadRecording(recording)}
                       className="flex-shrink-0"
                     >
@@ -419,6 +427,8 @@ export function VoiceRecorder({
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label="Delete Recording"
+                      title="Delete Recording"
                       onClick={() => deleteRecording(recording.id)}
                       className="flex-shrink-0 text-red-600 hover:text-red-700"
                     >
