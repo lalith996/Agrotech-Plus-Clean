@@ -60,7 +60,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            aria-label="Close cart"
           >
             <X className="w-5 h-5 text-gray-600" />
           </button>
@@ -128,8 +129,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <div className="flex items-center space-x-2 bg-gray-100 rounded-full p-1">
                         <button
                           onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
-                          className="p-1 hover:bg-white rounded-full transition-colors"
+                          className="p-1 hover:bg-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                           disabled={item.quantity <= 1}
+                          aria-label={`Decrease quantity of ${item.name}`}
                         >
                           <Minus className="w-3 h-3 text-gray-600" />
                         </button>
@@ -138,7 +140,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         </span>
                         <button
                           onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
-                          className="p-1 hover:bg-white rounded-full transition-colors"
+                          className="p-1 hover:bg-white rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          aria-label={`Increase quantity of ${item.name}`}
                         >
                           <Plus className="w-3 h-3 text-gray-600" />
                         </button>
@@ -146,7 +149,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       
                       <button
                         onClick={() => handleRemoveItem(item.productId, item.name)}
-                        className="p-1 hover:bg-red-50 rounded-full transition-colors"
+                        className="p-1 hover:bg-red-50 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        aria-label={`Remove ${item.name} from cart`}
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
