@@ -77,7 +77,7 @@ export default async function handler(
 
       // Performance optimization: use database-level pagination unless we need to filter by in-memory rating
       let total = 0;
-      let paginatedProducts: any[] = [];
+      let paginatedProducts = [];
 
       if (minRating) {
         const products = await prisma.product.findMany({
