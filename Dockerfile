@@ -8,6 +8,7 @@ RUN apk add --no-cache python3 make g++ sqlite
 
 # Copy package management files
 COPY package.json ./
+COPY prisma ./prisma/
 
 # Enable pnpm and install dependencies
 RUN corepack enable pnpm && pnpm install
