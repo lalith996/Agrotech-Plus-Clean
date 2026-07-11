@@ -1,3 +1,0 @@
-## 2024-07-11 - Database-Level Pagination with Derived Fields
-**Learning:** In the products API, pagination was previously implemented entirely in memory because a derived field (`rating`) was calculated on the fly. This meant fetching the entire products table, processing it, and then slicing it, which scales poorly and hits the database hard.
-**Action:** Implemented a hybrid approach: for standard queries, use database-level pagination (`skip` and `take`) paired with a `count` query. Retain the in-memory fallback only when filtering by the dynamically computed `minRating` is explicitly requested. This drastically improves performance for the majority of requests while keeping edge cases functional without structural schema changes.
