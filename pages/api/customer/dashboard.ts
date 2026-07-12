@@ -52,54 +52,57 @@ export default async function handler(
         return res.status(404).json({ message: "Customer profile not found" })
       }
 
-      // Get active subscriptions count
-      const activeSubscriptionsCount = await prisma.subscription.count({
-        where: {
-          customerId: customer.id,
-          status: "ACTIVE"
-        }
-      })
+      // Get data concurrently
+      const [
+        activeSubscriptionsCount,
+        recentOrders,
+        upcomingOrders,
+        products
+      ] = await Promise.all([
+        // Active subscriptions count
+        prisma.subscription.count({
+          where: {
+            customerId: customer.id,
+            status: "ACTIVE"
+          }
+        }),
 
-      // Get recent orders (last 5)
-      const recentOrders = await prisma.order.findMany({
-        where: { customerId: customer.id },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: {
-          items: {
-            include: {
-              product: true
+        // Recent orders (last 5)
+        prisma.order.findMany({
+          where: { customerId: customer.id },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            items: {
+              include: {
+                product: true
+              }
             }
           }
-        }
-      })
+        }),
 
-      // Calculate next delivery date from upcoming orders
-      const upcomingOrders = await prisma.order.findMany({
-        where: {
-          customerId: customer.id,
-          deliveryDate: {
-            gte: new Date()
+        // Upcoming orders for next delivery date
+        prisma.order.findMany({
+          where: {
+            customerId: customer.id,
+            deliveryDate: {
+              gte: new Date()
+            },
+            status: {
+              in: ["CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"]
+            }
           },
-          status: {
-            in: ["CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"]
+          orderBy: { deliveryDate: "asc" },
+          take: 1,
+          include: {
+            _count: {
+              select: { items: true }
+            }
           }
-        },
-        orderBy: { deliveryDate: "asc" },
-        take: 1
-      })
+        }),
 
-      const nextDelivery = upcomingOrders[0] ? {
-        date: upcomingOrders[0].deliveryDate.toISOString(),
-        itemCount: await prisma.orderItem.count({
-          where: { orderId: upcomingOrders[0].id }
-        })
-      } : null
-
-      // Get recommended products - simple fallback to latest products
-      let recommendedProducts: any[] = []
-      try {
-        const products = await prisma.product.findMany({
+        // Recommended products (fallback to latest active products)
+        prisma.product.findMany({
           where: {
             isActive: true
           },
@@ -118,8 +121,19 @@ export default async function handler(
               }
             }
           }
+        }).catch((error) => {
+          console.error("Error fetching products:", error);
+          return [];
         })
-        
+      ])
+
+      const nextDelivery = upcomingOrders[0] ? {
+        date: upcomingOrders[0].deliveryDate.toISOString(),
+        itemCount: upcomingOrders[0]._count.items
+      } : null
+
+      let recommendedProducts: any[] = []
+      try {
         recommendedProducts = products.map(product => ({
           id: product.id,
           name: product.name,
