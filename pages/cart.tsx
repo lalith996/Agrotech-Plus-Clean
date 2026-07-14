@@ -161,6 +161,7 @@ export default function CartPage() {
                           </div>
                           <button
                             onClick={() => handleRemoveItem(item.productId, item.name)}
+                            aria-label="Remove item"
                             className="p-2 hover:bg-red-50 rounded-full transition-colors"
                           >
                             <X className="w-5 h-5 text-red-600" />
@@ -181,7 +182,8 @@ export default function CartPage() {
                             <div className="flex items-center space-x-3 bg-gray-100 rounded-full px-3 py-2">
                               <button
                                 onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
-                                className="p-1 hover:bg-white rounded-full transition-colors"
+                                aria-label="Decrease quantity"
+                                className="p-1 hover:bg-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={item.quantity <= 1}
                               >
                                 <Minus className="w-4 h-4 text-gray-600" />
@@ -191,6 +193,7 @@ export default function CartPage() {
                               </span>
                               <button
                                 onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
+                                aria-label="Increase quantity"
                                 className="p-1 hover:bg-white rounded-full transition-colors"
                               >
                                 <Plus className="w-4 h-4 text-gray-600" />
