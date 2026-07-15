@@ -76,6 +76,7 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [searchInput, setSearchInput] = useState("")
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
@@ -180,9 +181,20 @@ export default function Products() {
     fetchFarmers()
   }, [fetchFarmers])
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearchTerm(searchInput)
+    }, 300)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [searchInput])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchProducts()
+    setSearchTerm(searchInput)
+    // fetchProducts is triggered automatically by useEffect listening to searchTerm
   }
 
   const handleCategoryToggle = (category: string) => {
@@ -204,6 +216,7 @@ export default function Products() {
     setAvailabilityFilter("all")
     setRatingFilter(0)
     setSearchTerm("")
+    setSearchInput("")
   }
 
   const handleWishlistToggle = (product: Product) => {
@@ -414,8 +427,8 @@ export default function Products() {
                 <Input
                   type="text"
                   placeholder="Search for products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="pl-12 h-12 rounded-full"
                 />
               </div>
