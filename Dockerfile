@@ -12,6 +12,7 @@ COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma/
 
 # Install dependencies
+RUN pnpm config set ignore-scripts true
 RUN pnpm install
 
 # Copy the rest of the application code
