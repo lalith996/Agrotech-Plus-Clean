@@ -144,13 +144,19 @@ export default async function handler(
       }
 
       // Calculate total amount and validate products
+      // ⚡ Bolt Optimization: Pre-fetch all products using in operator to prevent N+1 query bottleneck
+      const productIds = items.map((item: any) => item.productId);
+      const products = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+      });
+
+      const productMap = new Map(products.map((p: any) => [p.id, p]));
+
       let totalAmount = 0;
       const orderItems = [];
 
       for (const item of items) {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-        });
+        const product = productMap.get(item.productId);
 
         if (!product) {
           return res.status(400).json({ message: `Product ${item.productId} not found` });
