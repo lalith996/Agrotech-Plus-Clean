@@ -161,7 +161,9 @@ export default function CartPage() {
                           </div>
                           <button
                             onClick={() => handleRemoveItem(item.productId, item.name)}
-                            className="p-2 hover:bg-red-50 rounded-full transition-colors"
+                            className="p-2 hover:bg-red-50 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                            aria-label={`Remove ${item.name} from cart`}
+                            title="Remove item"
                           >
                             <X className="w-5 h-5 text-red-600" />
                           </button>
@@ -181,17 +183,21 @@ export default function CartPage() {
                             <div className="flex items-center space-x-3 bg-gray-100 rounded-full px-3 py-2">
                               <button
                                 onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
-                                className="p-1 hover:bg-white rounded-full transition-colors"
+                                className="p-1 hover:bg-white rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600"
                                 disabled={item.quantity <= 1}
+                                aria-label="Decrease quantity"
+                                title="Decrease quantity"
                               >
                                 <Minus className="w-4 h-4 text-gray-600" />
                               </button>
-                              <span className="text-base font-semibold w-8 text-center">
+                              <span className="text-base font-semibold w-8 text-center" aria-live="polite">
                                 {item.quantity}
                               </span>
                               <button
                                 onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
-                                className="p-1 hover:bg-white rounded-full transition-colors"
+                                className="p-1 hover:bg-white rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600"
+                                aria-label="Increase quantity"
+                                title="Increase quantity"
                               >
                                 <Plus className="w-4 h-4 text-gray-600" />
                               </button>
