@@ -2,6 +2,7 @@
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  serverExternalPackages: ['@elastic/elasticsearch', 'sharp', 'stripe'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'localhost' },
