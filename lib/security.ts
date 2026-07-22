@@ -25,7 +25,7 @@ export class InputSanitizer {
   // Remove HTML tags and potentially dangerous characters
   static sanitizeHtml(input: string): string {
     // Security enhancement: Use isomorphic-dompurify for formatting-safe sanitization instead of regex
-    return DOMPurify.sanitize(input).trim()
+    return (DOMPurify.sanitize(input) as string).trim()
   }
 
   // Sanitize SQL input to prevent injection
