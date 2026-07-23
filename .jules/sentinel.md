@@ -1,0 +1,4 @@
+## 2024-03-20 - XSS Vulnerability in dangerouslySetInnerHTML
+**Vulnerability:** The blog article component used dangerouslySetInnerHTML to render blog post content directly from data without proper HTML sanitization, allowing potential Cross-Site Scripting (XSS).
+**Learning:** React's dangerouslySetInnerHTML bypasses built-in XSS protections. Even if content is believed to be safe or from an internal CMS, it must be properly sanitized on the client side, especially if user-generated content might be included later. The previous sanitizeHtml method was too aggressive (stripping all tags) making it unusable for rich text, leading to developers bypassing it entirely.
+**Prevention:** Always use a robust, actively maintained sanitization library like DOMPurify when rendering raw HTML in React. Provide a balanced sanitization method that preserves safe formatting tags but strictly removes executable scripts and event handlers.
