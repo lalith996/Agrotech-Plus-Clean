@@ -5,7 +5,6 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react"
-import DOMPurify from 'isomorphic-dompurify';
 
 const blogPostsData: Record<string, any> = {
   "organic-farming-benefits": {
@@ -239,8 +238,7 @@ export default function BlogArticlePage() {
               {/* Article Content */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                // Security: Sanitize HTML content to prevent XSS vulnerabilities
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
               {/* Author Bio */}
