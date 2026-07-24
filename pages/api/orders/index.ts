@@ -147,10 +147,16 @@ export default async function handler(
       let totalAmount = 0;
       const orderItems = [];
 
+      // Pre-fetch all products for the order to avoid N+1 query issue
+      const productIds = items.map((item: any) => item.productId);
+      const products = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+      });
+
+      const productMap = new Map(products.map(p => [p.id, p]));
+
       for (const item of items) {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-        });
+        const product = productMap.get(item.productId);
 
         if (!product) {
           return res.status(400).json({ message: `Product ${item.productId} not found` });
