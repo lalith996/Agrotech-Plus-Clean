@@ -317,13 +317,22 @@ export class DataEncryption {
       const iv = Buffer.from(ivHex, 'hex')
       const authTag = Buffer.from(authTagHex, 'hex')
       
-      const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
-      decipher.setAuthTag(authTag)
-      
-      let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-      decrypted += decipher.final('utf8')
-      
-      return decrypted
+      try {
+        const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
+        decipher.setAuthTag(authTag)
+
+        let decrypted = decipher.update(encrypted, 'hex', 'utf8')
+        decrypted += decipher.final('utf8')
+
+        return decrypted
+      } catch {
+        // Fallback for data encrypted with the deprecated createCipher
+        const legacyDecipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
+        legacyDecipher.setAuthTag(authTag)
+        let legacyDecrypted = legacyDecipher.update(encrypted, 'hex', 'utf8')
+        legacyDecrypted += legacyDecipher.final('utf8')
+        return legacyDecrypted
+      }
     } catch {
       throw new Error('Failed to decrypt data')
     }
