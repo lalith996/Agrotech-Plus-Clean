@@ -325,7 +325,7 @@ export class DataEncryption {
         decrypted += decipher.final('utf8')
 
         return decrypted
-      } catch {
+      } catch (err) {
         // Fallback for data encrypted with the deprecated createCipher
         const legacyDecipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
         legacyDecipher.setAuthTag(authTag)
