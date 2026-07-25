@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react"
+import { InputSanitizer } from "@/lib/security"
 
 const blogPostsData: Record<string, any> = {
   "organic-farming-benefits": {
@@ -238,7 +239,7 @@ export default function BlogArticlePage() {
               {/* Article Content */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: InputSanitizer.sanitizeHtml(post.content) }}
               />
 
               {/* Author Bio */}
