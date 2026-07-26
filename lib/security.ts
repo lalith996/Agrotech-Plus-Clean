@@ -24,7 +24,7 @@ const slowDown = mockSlowDown;
 export class InputSanitizer {
   // Remove HTML tags and potentially dangerous characters
   static sanitizeHtml(input: string): string {
-    return (DOMPurify.sanitize(input) as string).trim()
+    return (DOMPurify.sanitize(input, { ALLOWED_TAGS: [] }) as string).trim()
   }
 
   // Sanitize SQL input to prevent injection
