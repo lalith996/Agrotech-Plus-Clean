@@ -19,16 +19,13 @@ const mockSlowDown = (options: any) => (req: any, res: any, next: any) => {
 const rateLimit = mockRateLimit;
 const slowDown = mockSlowDown;
 
+import DOMPurify from 'isomorphic-dompurify';
+
 // Input sanitization utilities
 export class InputSanitizer {
   // Remove HTML tags and potentially dangerous characters
   static sanitizeHtml(input: string): string {
-    return input
-      .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove script tags
-      .replace(/<[^>]*>/g, '') // Remove all HTML tags
-      .replace(/javascript:/gi, '') // Remove javascript: protocols
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
-      .trim()
+    return DOMPurify.sanitize(input, { ALLOWED_TAGS: [] }).trim()
   }
 
   // Sanitize SQL input to prevent injection
