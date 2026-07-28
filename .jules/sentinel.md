@@ -1,0 +1,4 @@
+## 2025-02-14 - Fix insecure deprecated crypto functions
+**Vulnerability:** Usage of deprecated `crypto.createCipher` and `crypto.createDecipher` in `lib/security.ts`.
+**Learning:** `crypto.createCipher` derives both key and IV from a password (which in this case was a static env key) causing identical IVs across encryptions. Reusing IVs in GCM mode allows for authentication key recovery and trivial decryption. Falling back to the deprecated method for older ciphertexts in `try...catch` preserves backwards-compatibility while rolling out the secure method for new data.
+**Prevention:** Always use `crypto.createCipheriv` with a randomly generated initialization vector (`crypto.randomBytes(16)`) instead of `createCipher`. Maintain `try...catch` compatibility when replacing existing decryption logic in production.
