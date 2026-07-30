@@ -299,7 +299,7 @@ export class DataEncryption {
   // Encrypt sensitive data
   static encrypt(text: string): string {
     const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv(this.ALGORITHM, this.KEY, iv)
+    const cipher = crypto.createCipher(this.ALGORITHM, this.KEY)
     
     let encrypted = cipher.update(text, 'utf8', 'hex')
     encrypted += cipher.final('hex')
@@ -317,23 +317,13 @@ export class DataEncryption {
       const iv = Buffer.from(ivHex, 'hex')
       const authTag = Buffer.from(authTagHex, 'hex')
       
-      try {
-        const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
-        decipher.setAuthTag(authTag)
+      const decipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
+      decipher.setAuthTag(authTag)
 
-        let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-        decrypted += decipher.final('utf8')
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8')
+      decrypted += decipher.final('utf8')
 
-        return decrypted
-      } catch {
-        const decipher = (crypto as any).createDecipher(this.ALGORITHM, this.KEY)
-        decipher.setAuthTag(authTag)
-
-        let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-        decrypted += decipher.final('utf8')
-
-        return decrypted
-      }
+      return decrypted
     } catch {
       throw new Error('Failed to decrypt data')
     }

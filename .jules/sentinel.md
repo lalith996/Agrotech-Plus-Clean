@@ -1,4 +1,0 @@
-## 2025-03-09 - Upgrade Deprecated Crypto APIs
-**Vulnerability:** The use of `crypto.createCipher` and `crypto.createDecipher` for encryption is critically flawed as these methods derive keys insecurely and lack proper initialization vector (IV) usage, leading to deterministic and easily crackable ciphertexts.
-**Learning:** Developers may mistakenly continue to use these deprecated APIs in older code without realizing they produce insecure encryption and cause breaking runtime errors in modern environments (e.g., Node 22).
-**Prevention:** Always use `crypto.createCipheriv` and `crypto.createDecipheriv` with a securely generated random IV for encryption. Maintain backward-compatibility fallbacks in decryption routines using `try...catch` blocks to prevent data loss for legacy users during migration.
