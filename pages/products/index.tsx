@@ -76,17 +76,7 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   
-  // Performance optimization: Debounce search input to reduce API calls
-  // Expected impact: Prevents rapid re-fetching and excessive network requests while user is typing
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchTerm])
-
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
   const [selectedFarmers, setSelectedFarmers] = useState<string[]>([])
@@ -116,7 +106,7 @@ export default function Products() {
     try {
       const params = new URLSearchParams()
       
-      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm)
+      if (searchTerm) params.append("search", searchTerm)
       selectedCategories.forEach(cat => params.append("categories[]", cat))
       selectedFarmers.forEach(farmerId => params.append("farmerIds[]", farmerId))
       
@@ -161,7 +151,7 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }, [debouncedSearchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
+  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
   const fetchFarmers = useCallback(async () => {
     try {
@@ -214,7 +204,6 @@ export default function Products() {
     setAvailabilityFilter("all")
     setRatingFilter(0)
     setSearchTerm("")
-    setDebouncedSearchTerm("")
   }
 
   const handleWishlistToggle = (product: Product) => {
