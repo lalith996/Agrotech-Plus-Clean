@@ -1,6 +1,7 @@
 // Security utilities and data protection measures
 
 import crypto from 'crypto'
+import DOMPurify from 'isomorphic-dompurify'
 import { NextApiRequest, NextApiResponse } from 'next'
 // Mock rate limiting for development - install express-rate-limit and express-slow-down for production
 // import rateLimit from 'express-rate-limit'
@@ -23,12 +24,7 @@ const slowDown = mockSlowDown;
 export class InputSanitizer {
   // Remove HTML tags and potentially dangerous characters
   static sanitizeHtml(input: string): string {
-    return input
-      .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove script tags
-      .replace(/<[^>]*>/g, '') // Remove all HTML tags
-      .replace(/javascript:/gi, '') // Remove javascript: protocols
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
-      .trim()
+    return DOMPurify.sanitize(input, { ALLOWED_TAGS: [] }).trim()
   }
 
   // Sanitize SQL input to prevent injection
