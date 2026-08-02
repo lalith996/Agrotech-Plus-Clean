@@ -76,6 +76,9 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  // Performance optimization: debounce search term to prevent excessive API calls on every keystroke
+  // Expected impact: Significantly reduces backend load and frontend re-renders during active typing
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
@@ -106,7 +109,7 @@ export default function Products() {
     try {
       const params = new URLSearchParams()
       
-      if (searchTerm) params.append("search", searchTerm)
+      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm)
       selectedCategories.forEach(cat => params.append("categories[]", cat))
       selectedFarmers.forEach(farmerId => params.append("farmerIds[]", farmerId))
       
@@ -151,7 +154,7 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
+  }, [debouncedSearchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
   const fetchFarmers = useCallback(async () => {
     try {
@@ -180,9 +183,18 @@ export default function Products() {
     fetchFarmers()
   }, [fetchFarmers])
 
+  // Performance optimization: Debounce search term updates
+  // Expected impact: Limits API requests to when the user pauses typing (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchProducts()
+    setDebouncedSearchTerm(searchTerm)
   }
 
   const handleCategoryToggle = (category: string) => {
@@ -204,6 +216,7 @@ export default function Products() {
     setAvailabilityFilter("all")
     setRatingFilter(0)
     setSearchTerm("")
+    setDebouncedSearchTerm("")
   }
 
   const handleWishlistToggle = (product: Product) => {
