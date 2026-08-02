@@ -433,7 +433,6 @@ export default function Products() {
                     size="icon"
                     onClick={() => setViewMode("grid")}
                     className={viewMode === "grid" ? "bg-[#00B207] hover:bg-[#00B207]/90" : ""}
-                    aria-label="Grid view"
                   >
                     <Grid3x3 className="w-4 h-4" />
                   </Button>
@@ -442,7 +441,6 @@ export default function Products() {
                     size="icon"
                     onClick={() => setViewMode("list")}
                     className={viewMode === "list" ? "bg-[#00B207] hover:bg-[#00B207]/90" : ""}
-                    aria-label="List view"
                   >
                     <List className="w-4 h-4" />
                   </Button>

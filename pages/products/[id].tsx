@@ -425,7 +425,6 @@ export default function ProductDetail() {
                     size="icon"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="h-12 w-12 rounded-full"
-                    aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
@@ -435,7 +434,6 @@ export default function ProductDetail() {
                     size="icon"
                     onClick={() => setQuantity(quantity + 1)}
                     className="h-12 w-12 rounded-full"
-                    aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -481,7 +479,6 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("whatsapp")}
                     className="rounded-full"
-                    aria-label="Share on WhatsApp"
                   >
                     <MessageCircle className="w-5 h-5 text-green-600" />
                   </Button>
@@ -490,7 +487,6 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("facebook")}
                     className="rounded-full"
-                    aria-label="Share on Facebook"
                   >
                     <Facebook className="w-5 h-5 text-blue-600" />
                   </Button>
@@ -499,7 +495,6 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("twitter")}
                     className="rounded-full"
-                    aria-label="Share on Twitter"
                   >
                     <Twitter className="w-5 h-5 text-sky-500" />
                   </Button>
@@ -508,7 +503,6 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("copy")}
                     className="rounded-full"
-                    aria-label="Copy share link"
                   >
                     <Copy className="w-5 h-5" />
                   </Button>
