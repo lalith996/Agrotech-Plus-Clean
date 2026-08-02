@@ -319,10 +319,10 @@ export class DataEncryption {
       
       const decipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
       decipher.setAuthTag(authTag)
-      
+
       let decrypted = decipher.update(encrypted, 'hex', 'utf8')
       decrypted += decipher.final('utf8')
-      
+
       return decrypted
     } catch {
       throw new Error('Failed to decrypt data')
