@@ -76,7 +76,6 @@ export function ImageUpload({
                   size="icon"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => onRemove(url)}
-                  aria-label="Remove image"
                 >
                   <X className="h-4 w-4" />
                 </Button>
