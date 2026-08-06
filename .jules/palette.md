@@ -1,0 +1,1 @@
+## 2026-08-06 - Accessibility: ARIA labels on Icon Buttons\n**Learning:** Icon-only buttons without accessible names fail WCAG guidelines and make screen reader navigation difficult. Components like Chatbot use icon buttons heavily.\n**Action:** Always add 'aria-label' or visually hidden text to buttons that only contain icons.
