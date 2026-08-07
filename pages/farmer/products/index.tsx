@@ -252,7 +252,7 @@ export default function FarmerProducts() {
 
                       <div className="flex items-center gap-2">
                         <Link href={`/farmer/products/${product.id}/edit`}>
-                          <Button variant="outline" size="icon" className="h-8 w-8">
+                          <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Edit product">
                             <Edit className="w-4 h-4" />
                           </Button>
                         </Link>
@@ -261,6 +261,7 @@ export default function FarmerProducts() {
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => handleDeleteProduct(product.id, product.name)}
+                          aria-label="Delete product"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -273,7 +274,7 @@ export default function FarmerProducts() {
 
                     <div className="grid grid-cols-3 gap-2 pt-2">
                       <Link href={`/products/${product.id}`} className="col-span-1">
-                        <Button variant="outline" size="sm" className="w-full rounded-lg">
+                        <Button variant="outline" size="sm" className="w-full rounded-lg" aria-label="View product">
                           <Eye className="w-4 h-4" />
                         </Button>
                       </Link>
@@ -282,6 +283,7 @@ export default function FarmerProducts() {
                         size="sm" 
                         className="col-span-1 rounded-lg"
                         onClick={() => handleEditProduct(product.id)}
+                        aria-label="Edit product"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -290,6 +292,7 @@ export default function FarmerProducts() {
                         size="sm" 
                         className="col-span-1 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50"
                         onClick={() => handleDeleteProduct(product.id, product.name)}
+                        aria-label="Delete product"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
