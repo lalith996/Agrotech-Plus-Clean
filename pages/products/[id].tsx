@@ -479,6 +479,7 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("whatsapp")}
                     className="rounded-full"
+                    aria-label="Share on WhatsApp"
                   >
                     <MessageCircle className="w-5 h-5 text-green-600" />
                   </Button>
@@ -487,6 +488,7 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("facebook")}
                     className="rounded-full"
+                    aria-label="Share on Facebook"
                   >
                     <Facebook className="w-5 h-5 text-blue-600" />
                   </Button>
@@ -495,6 +497,7 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("twitter")}
                     className="rounded-full"
+                    aria-label="Share on Twitter"
                   >
                     <Twitter className="w-5 h-5 text-sky-500" />
                   </Button>
@@ -503,6 +506,7 @@ export default function ProductDetail() {
                     variant="outline"
                     onClick={() => handleShare("copy")}
                     className="rounded-full"
+                    aria-label="Copy link"
                   >
                     <Copy className="w-5 h-5" />
                   </Button>
