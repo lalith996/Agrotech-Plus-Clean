@@ -1,5 +1,5 @@
-## 2024-05-18 - Deprecated cryptographic functions
+## 2024-05-18 - XSS in React via dangerouslySetInnerHTML
 
-**Vulnerability:** Usage of deprecated `crypto.createCipher` and `crypto.createDecipher` which derive keys insecurely (MD5) and do not use initialization vectors securely.
-**Learning:** Legacy encryption methods like `crypto.createCipher` are completely removed in newer versions of Node.js (e.g., Node 22+) for AEAD modes like `aes-256-gcm`, making backward-compatible fallbacks impossible.
-**Prevention:** Always use modern, standard encryption methods like `crypto.createCipheriv` and `crypto.createDecipheriv` with a secure Key Derivation Function (KDF) like `scryptSync` and an explicitly generated Initialization Vector (IV).
+**Vulnerability:** User-provided or dynamically loaded content (e.g., blog posts) is rendered directly into the DOM using `dangerouslySetInnerHTML` without any prior HTML sanitization, allowing arbitrary scripts to execute.
+**Learning:** React's `dangerouslySetInnerHTML` bypasses its built-in XSS protections. Therefore, any content passed to it must be trusted or explicitly sanitized beforehand to prevent XSS attacks.
+**Prevention:** Always sanitize dynamic HTML content using utilities like `InputSanitizer.sanitizeHtml` (or a dedicated library like DOMPurify) before passing it to `dangerouslySetInnerHTML`.
