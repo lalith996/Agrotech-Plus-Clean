@@ -52,6 +52,16 @@ export default function FarmersDirectory() {
   const [filteredFarmers, setFilteredFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+
+  // Performance optimization: Debounce search input to prevent excessive filtering
+  // Expected impact: Reduces CPU overhead by avoiding filter passes on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
   const [showMapView, setShowMapView] = useState(false)
   
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
@@ -66,7 +76,7 @@ export default function FarmersDirectory() {
 
   useEffect(() => {
     filterFarmers()
-  }, [farmers, searchTerm, selectedLocations])
+  }, [farmers, debouncedSearchTerm, selectedLocations])
 
   const fetchFarmers = async () => {
     setIsLoading(true)
@@ -105,12 +115,12 @@ export default function FarmersDirectory() {
   const filterFarmers = () => {
     let filtered = [...farmers]
 
-    if (searchTerm) {
+    if (debouncedSearchTerm) {
       filtered = filtered.filter(
         (farmer) =>
-          farmer.farmName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          farmer.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          farmer.location.toLowerCase().includes(searchTerm.toLowerCase())
+          farmer.farmName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          farmer.user.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          farmer.location.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       )
     }
 
