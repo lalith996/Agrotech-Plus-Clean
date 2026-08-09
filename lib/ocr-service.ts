@@ -1,5 +1,6 @@
 import Tesseract, { Worker, PSM } from 'tesseract.js';
-import sharp from 'sharp';
+let sharp: any;
+try { sharp = require('sharp'); } catch(e) {}
 import { prisma } from './db-optimization';
 
 export interface OCRResult {
