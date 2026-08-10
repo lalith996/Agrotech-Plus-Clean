@@ -1,0 +1,3 @@
+## 2024-08-10 - ARIA Labels on Non-Semantic Elements
+**Learning:** Adding an `aria-label` directly to generic, non-semantic elements like a `<span>` or `<div>` (e.g., `<span aria-label="...">`) is technically invalid and often ignored by screen readers unless the element is also given an explicit, semantic ARIA `role` (like `role="status"`, `role="text"`, or `role="alert"`).
+**Action:** When attempting to announce dynamic text values (like a quantity counter) to screen readers, ensure the generic element wrapper also receives an appropriate ARIA role, or alternatively, use visually hidden text alongside the visible value.
