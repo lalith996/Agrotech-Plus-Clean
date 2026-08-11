@@ -298,8 +298,9 @@ export class DataEncryption {
 
   // Encrypt sensitive data
   static encrypt(text: string): string {
-    const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipher(this.ALGORITHM, this.KEY)
+    // 12 bytes is the standard required length for GCM mode
+    const iv = crypto.randomBytes(12)
+    const cipher = crypto.createCipheriv(this.ALGORITHM, this.KEY, iv)
     
     let encrypted = cipher.update(text, 'utf8', 'hex')
     encrypted += cipher.final('hex')
@@ -317,7 +318,7 @@ export class DataEncryption {
       const iv = Buffer.from(ivHex, 'hex')
       const authTag = Buffer.from(authTagHex, 'hex')
       
-      const decipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
       decipher.setAuthTag(authTag)
       
       let decrypted = decipher.update(encrypted, 'hex', 'utf8')
