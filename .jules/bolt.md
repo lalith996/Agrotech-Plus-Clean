@@ -1,0 +1,3 @@
+## 2024-05-24 - N+1 Query in Order Creation
+**Learning:** Fetching database records individually inside a loop (like finding products during order validation) creates an N+1 query bottleneck that severely degrades performance as order size grows.
+**Action:** Always extract database queries outside of loops by gathering IDs, using an `in` clause to batch fetch, and mapping the results for O(1) lookups in memory.
