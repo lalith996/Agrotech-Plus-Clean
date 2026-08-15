@@ -75,39 +75,70 @@ export default async function handler(
         if (maxPrice) where.basePrice.lte = parseFloat(maxPrice as string)
       }
 
-      // Get products with farmer information
-      let products = await prisma.product.findMany({
-        where,
-        include: {
-          farmer: {
-            include: {
-              user: {
-                select: {
-                  name: true,
+      let total: number;
+      let paginatedProducts;
+
+      if (minRating) {
+        // Fallback to in-memory filtering and pagination if minRating is provided (since rating is mock-computed)
+        let products = await prisma.product.findMany({
+          where,
+          include: {
+            farmer: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                  },
                 },
               },
             },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      })
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
 
-      const productsWithRating = products.map(product => ({
-        ...product,
-        rating: (product.id.charCodeAt(0) % 5) + 1
-      }))
+        const productsWithRating = products.map(product => ({
+          ...product,
+          rating: (product.id.charCodeAt(0) % 5) + 1
+        }));
 
-      let filteredProducts = productsWithRating
-      
-      if (minRating) {
-        const minRatingNum = parseInt(minRating as string)
-        filteredProducts = filteredProducts.filter(p => p.rating >= minRatingNum)
+        const minRatingNum = parseInt(minRating as string);
+        const filteredProducts = productsWithRating.filter(p => p.rating >= minRatingNum);
+
+        total = filteredProducts.length;
+        paginatedProducts = filteredProducts.slice(skip, skip + limitNum);
+      } else {
+        // Optimize: Use database-level pagination and counting
+        const [products, count] = await Promise.all([
+          prisma.product.findMany({
+            where,
+            include: {
+              farmer: {
+                include: {
+                  user: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+            skip,
+            take: limitNum,
+          }),
+          prisma.product.count({ where }),
+        ]);
+
+        total = count;
+        paginatedProducts = products.map(product => ({
+          ...product,
+          rating: (product.id.charCodeAt(0) % 5) + 1
+        }));
       }
-
-      const total = filteredProducts.length
-      const paginatedProducts = filteredProducts.slice(skip, skip + limitNum)
 
       // Get unique categories for filtering
       const uniqueCategories = await prisma.product.findMany({
