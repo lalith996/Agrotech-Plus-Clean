@@ -298,8 +298,10 @@ export class DataEncryption {
 
   // Encrypt sensitive data
   static encrypt(text: string): string {
-    const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipher(this.ALGORITHM, this.KEY)
+    // SECURITY: aes-256-gcm requires exactly a 12-byte IV
+    const iv = crypto.randomBytes(12)
+    // SECURITY: createCipher is deprecated and insecure. Use createCipheriv instead.
+    const cipher = crypto.createCipheriv(this.ALGORITHM, this.KEY, iv)
     
     let encrypted = cipher.update(text, 'utf8', 'hex')
     encrypted += cipher.final('hex')
@@ -317,7 +319,8 @@ export class DataEncryption {
       const iv = Buffer.from(ivHex, 'hex')
       const authTag = Buffer.from(authTagHex, 'hex')
       
-      const decipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
+      // SECURITY: createDecipher is deprecated and insecure. Use createDecipheriv instead.
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
       decipher.setAuthTag(authTag)
       
       let decrypted = decipher.update(encrypted, 'hex', 'utf8')
