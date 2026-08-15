@@ -12,6 +12,7 @@ import { Slider } from "@/components/ui/slider"
 import { QuickViewModal } from "@/components/products/quick-view-modal"
 import { useCartStore } from "@/lib/stores/cart-store"
 import { useWishlistStore } from "@/lib/stores/wishlist-store"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 import { 
   Search, 
   Heart, 
@@ -77,6 +78,10 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   
+  // Performance optimization: Debounce search term to reduce API calls on keystrokes
+  // Expected impact: Reduces backend API load and prevents UI blocking during rapid typing
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
   const [selectedFarmers, setSelectedFarmers] = useState<string[]>([])
@@ -106,7 +111,7 @@ export default function Products() {
     try {
       const params = new URLSearchParams()
       
-      if (searchTerm) params.append("search", searchTerm)
+      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm)
       selectedCategories.forEach(cat => params.append("categories[]", cat))
       selectedFarmers.forEach(farmerId => params.append("farmerIds[]", farmerId))
       
@@ -151,7 +156,7 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
+  }, [debouncedSearchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
   const fetchFarmers = useCallback(async () => {
     try {
