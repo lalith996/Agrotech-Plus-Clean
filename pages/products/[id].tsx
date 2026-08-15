@@ -425,6 +425,7 @@ export default function ProductDetail() {
                     size="icon"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="h-12 w-12 rounded-full"
+                    aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
@@ -434,6 +435,7 @@ export default function ProductDetail() {
                     size="icon"
                     onClick={() => setQuantity(quantity + 1)}
                     className="h-12 w-12 rounded-full"
+                    aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
