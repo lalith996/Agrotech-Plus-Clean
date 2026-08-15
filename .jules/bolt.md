@@ -1,0 +1,3 @@
+## 2024-05-24 - Search Input Debouncing Pattern
+**Learning:** Adding debounce to search inputs directly within the component state using `useEffect` and `setTimeout` is a robust pattern that avoids heavy external dependencies while preventing rapid API calls during typing. The dependency arrays in subsequent fetch hooks must be updated to depend only on the debounced value, not the raw input.
+**Action:** When implementing search functionality that triggers an API call or expensive filter, always introduce a debounced state variable (e.g., ~500ms delay) to prevent unnecessary re-renders or backend load. Additionally, provide a mechanism for immediate submission (e.g., updating the debounced state immediately on form submit).
