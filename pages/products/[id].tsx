@@ -423,6 +423,7 @@ export default function ProductDetail() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="Decrease quantity"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="h-12 w-12 rounded-full"
                   >
@@ -432,6 +433,7 @@ export default function ProductDetail() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="Increase quantity"
                     onClick={() => setQuantity(quantity + 1)}
                     className="h-12 w-12 rounded-full"
                   >
@@ -477,6 +479,7 @@ export default function ProductDetail() {
                   <Button
                     size="icon"
                     variant="outline"
+                    aria-label="Share on WhatsApp"
                     onClick={() => handleShare("whatsapp")}
                     className="rounded-full"
                   >
@@ -485,6 +488,7 @@ export default function ProductDetail() {
                   <Button
                     size="icon"
                     variant="outline"
+                    aria-label="Share on Facebook"
                     onClick={() => handleShare("facebook")}
                     className="rounded-full"
                   >
@@ -493,6 +497,7 @@ export default function ProductDetail() {
                   <Button
                     size="icon"
                     variant="outline"
+                    aria-label="Share on Twitter"
                     onClick={() => handleShare("twitter")}
                     className="rounded-full"
                   >
@@ -501,6 +506,7 @@ export default function ProductDetail() {
                   <Button
                     size="icon"
                     variant="outline"
+                    aria-label="Copy link"
                     onClick={() => handleShare("copy")}
                     className="rounded-full"
                   >
@@ -773,6 +779,7 @@ export default function ProductDetail() {
       {isFullscreenGallery && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
           <button
+            aria-label="Close fullscreen gallery"
             onClick={() => setIsFullscreenGallery(false)}
             className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
           >
