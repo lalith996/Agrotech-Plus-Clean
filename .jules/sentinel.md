@@ -1,0 +1,4 @@
+## 2024-05-24 - XSS via dangerouslySetInnerHTML
+**Vulnerability:** Cross-Site Scripting (XSS) vulnerability due to unsanitized use of `dangerouslySetInnerHTML` in the blog post component.
+**Learning:** `dangerouslySetInnerHTML` should never be used with raw, unsanitized content, even if it comes from an internal data source, as it can easily become an injection point if the source is compromised or changed to user input. The project strictly forbids it.
+**Prevention:** Always sanitize HTML content using `isomorphic-dompurify` before rendering it with `dangerouslySetInnerHTML` in SSR-compatible React applications.
