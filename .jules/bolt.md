@@ -1,0 +1,3 @@
+## 2025-10-29 - Anti-pattern: Sequential Database Queries
+**Learning:** Found sequential `await prisma...` calls for dashboard endpoints (e.g., active subscriptions, recent orders, upcoming orders, recommended products) which blocks execution and unnecessarily extends response time. Additionally, using sequential counting operations after object retrieval (like `prisma.orderItem.count` for an already retrieved order) further degrades performance.
+**Action:** Replace independent sequential database queries with `Promise.all` blocks to run them concurrently. Utilize Prisma's built-in aggregation like `_count` parameter inside nested `include` blocks during the initial fetch to avoid separate counting queries.
