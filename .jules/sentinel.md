@@ -1,0 +1,5 @@
+## 2024-06-11 - Crypto Initialization Vector (IV) Regression
+
+**Vulnerability:** Upgrading from deprecated `crypto.createCipher` to `crypto.createCipheriv` without a fallback logic can cause complete data loss for existing encrypted records, as the old method uses MD5 key derivation which is incompatible with the raw key expected by `createCipheriv`.
+**Learning:** `crypto.createCipher` implicitly handles string passwords and derives keys and IVs under the hood using an insecure `EVP_BytesToKey` algorithm. Swapping to `createCipheriv` requires a strict buffer key of exact length and an explicit IV. Furthermore, in Node 22+, attempting to use `createDecipher` as a fallback for GCM mode will throw native errors, making a functional legacy fallback impossible without downgrading Node or accepting the data loss.
+**Prevention:** When upgrading legacy cryptographic functions, always carefully analyze the key derivation mechanics. If a fallback is impossible due to environment restrictions (like Node 22+ removing support), this constraint must be explicitly documented and escalated, as it implies unavoidable data loss for legacy records.
