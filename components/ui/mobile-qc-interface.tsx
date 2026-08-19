@@ -484,6 +484,7 @@ export function MobileQCInterface({
             <Button
               variant="outline"
               onClick={() => setCurrentInspection(null)}
+              aria-label="Close inspection"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -505,6 +506,7 @@ export function MobileQCInterface({
                     variant="outline"
                     size="sm"
                     onClick={() => updateQuantity('actualQuantity', qcResult.actualQuantity - 1)}
+                    aria-label="Decrease actual quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
@@ -520,6 +522,7 @@ export function MobileQCInterface({
                     variant="outline"
                     size="sm"
                     onClick={() => updateQuantity('actualQuantity', qcResult.actualQuantity + 1)}
+                    aria-label="Increase actual quantity"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -538,6 +541,7 @@ export function MobileQCInterface({
                       variant="outline"
                       size="sm"
                       onClick={() => updateQuantity('acceptedQuantity', qcResult.acceptedQuantity - 1)}
+                      aria-label="Decrease accepted quantity"
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
@@ -553,6 +557,7 @@ export function MobileQCInterface({
                       variant="outline"
                       size="sm"
                       onClick={() => updateQuantity('acceptedQuantity', qcResult.acceptedQuantity + 1)}
+                      aria-label="Increase accepted quantity"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -568,6 +573,7 @@ export function MobileQCInterface({
                       variant="outline"
                       size="sm"
                       onClick={() => updateQuantity('rejectedQuantity', qcResult.rejectedQuantity - 1)}
+                      aria-label="Decrease rejected quantity"
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
@@ -583,6 +589,7 @@ export function MobileQCInterface({
                       variant="outline"
                       size="sm"
                       onClick={() => updateQuantity('rejectedQuantity', qcResult.rejectedQuantity + 1)}
+                      aria-label="Increase rejected quantity"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -720,6 +727,7 @@ export function MobileQCInterface({
                           size="sm"
                           onClick={() => removePhoto(index)}
                           className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          aria-label={`Remove photo ${index + 1}`}
                         >
                           <X className="w-3 h-3" />
                         </Button>
@@ -781,6 +789,7 @@ export function MobileQCInterface({
                           variant="ghost"
                           size="sm"
                           onClick={() => removeAudioNote(index)}
+                          aria-label={`Remove audio note ${index + 1}`}
                         >
                           <X className="w-4 h-4" />
                         </Button>
