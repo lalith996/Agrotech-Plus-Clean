@@ -169,9 +169,10 @@ async function getDatabaseSuggestions(query: string, limit: number, type: string
   const suggestions: any[] = [];
 
   try {
-    if (type === 'all' || type === 'products') {
-      // Product suggestions
-      const products = await prisma.product.findMany({
+    // Performance optimization: Run database queries concurrently
+    // Expected impact: Reduces latency by running independent queries in parallel instead of sequentially
+    const [products, farmers, categories] = await Promise.all([
+      (type === 'all' || type === 'products') ? prisma.product.findMany({
         where: {
           isActive: true,
           name: {
@@ -185,19 +186,8 @@ async function getDatabaseSuggestions(query: string, limit: number, type: string
         },
         take: Math.ceil(limit / 3),
         orderBy: { name: 'asc' }
-      });
-
-      suggestions.push(...products.map(p => ({
-        text: p.name,
-        type: 'product',
-        category: p.category,
-        score: calculateRelevanceScore(p.name, query)
-      })));
-    }
-
-    if (type === 'all' || type === 'farmers') {
-      // Farmer suggestions
-      const farmers = await prisma.farmer.findMany({
+      }) : Promise.resolve([]),
+      (type === 'all' || type === 'farmers') ? prisma.farmer.findMany({
         where: {
           isApproved: true,
           farmName: {
@@ -211,19 +201,8 @@ async function getDatabaseSuggestions(query: string, limit: number, type: string
         },
         take: Math.ceil(limit / 3),
         orderBy: { farmName: 'asc' }
-      });
-
-      suggestions.push(...farmers.map(f => ({
-        text: f.farmName,
-        type: 'farmer',
-        location: f.location,
-        score: calculateRelevanceScore(f.farmName, query)
-      })));
-    }
-
-    if (type === 'all' || type === 'categories') {
-      // Category suggestions
-      const categories = await prisma.product.groupBy({
+      }) : Promise.resolve([]),
+      (type === 'all' || type === 'categories') ? prisma.product.groupBy({
         by: ['category'],
         where: {
           isActive: true,
@@ -241,8 +220,28 @@ async function getDatabaseSuggestions(query: string, limit: number, type: string
           }
         },
         take: Math.ceil(limit / 3)
-      });
+      }) : Promise.resolve([])
+    ]);
 
+    if (products.length > 0) {
+      suggestions.push(...products.map(p => ({
+        text: p.name,
+        type: 'product',
+        category: p.category,
+        score: calculateRelevanceScore(p.name, query)
+      })));
+    }
+
+    if (farmers.length > 0) {
+      suggestions.push(...farmers.map(f => ({
+        text: f.farmName,
+        type: 'farmer',
+        location: f.location,
+        score: calculateRelevanceScore(f.farmName, query)
+      })));
+    }
+
+    if (categories.length > 0) {
       suggestions.push(...categories.map(c => ({
         text: c.category,
         type: 'category',
