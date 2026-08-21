@@ -1,0 +1,3 @@
+## 2024-03-21 - Added Context-Aware ARIA Labels to Cart Controls
+**Learning:** Cart item quantity adjusters and remove buttons require dynamic ARIA labels containing the item name (e.g., `Decrease quantity of ${item.name}`) rather than static generic labels. Without this dynamic context, screen reader users navigating an itemized list hear multiple identical labels (like "Remove item" or "Increase quantity") with no indication of which specific product they are modifying.
+**Action:** Always map dynamic context strings into ARIA labels when enhancing interactive elements inside generated lists or loops, rather than falling back to static strings.
