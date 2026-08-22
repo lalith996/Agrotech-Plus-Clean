@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import Image from "next/image"
+import DOMPurify from 'isomorphic-dompurify'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react"
@@ -236,9 +237,10 @@ export default function BlogArticlePage() {
               </div>
 
               {/* Article Content */}
+              {/* Security: Sanitize HTML content to prevent XSS attacks before rendering */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
               />
 
               {/* Author Bio */}
