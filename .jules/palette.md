@@ -1,0 +1,3 @@
+## 2024-08-22 - Add ARIA Labels to Cart Drawer Buttons
+**Learning:** Reusable components like the `CartDrawer` must have ARIA labels for accessibility, particularly when they contain icon-only interactive elements such as quantity increase/decrease buttons and remove buttons, which are not natively accessible to screen readers. We should ensure context-specific labels are dynamically generated for list items (e.g. `aria-label={"Decrease quantity of ${item.name}"}`).
+**Action:** When working on components that map through items (like cart items, lists, or tables), ensure that any icon-only interactive elements receive descriptive, dynamically injected ARIA labels to maintain accessible context.
