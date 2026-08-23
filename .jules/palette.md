@@ -1,0 +1,3 @@
+## 2025-03-05 - Dynamic ARIA Labels in Cart Drawer
+**Learning:** Icon-only buttons within mapped lists (like the cart items) often lack dynamic context (e.g., just "Increase" instead of "Increase quantity of apples"). Without focus indicators, keyboard users cannot track which item they are interacting with.
+**Action:** When adding ARIA labels to items inside a mapped list, use dynamic values (e.g., `aria-label={"Decrease quantity of ${item.name}"}`) to provide context for screen reader users regarding which specific item they are interacting with. Always pair with `focus-visible:ring-2` for keyboard accessibility.
