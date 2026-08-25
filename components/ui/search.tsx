@@ -198,7 +198,7 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
               setShowSuggestions(true)
             }
           }}
-          role="searchbox"
+          role="combobox"
           aria-label="Search"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
