@@ -1,0 +1,4 @@
+## 2024-05-23 - Deprecated Crypto Functions createCipher and createDecipher Removed in Node 22+
+**Vulnerability:** The codebase was using `crypto.createCipher` and `crypto.createDecipher` for AES-256-GCM encryption in `lib/security.ts`. These functions are deprecated and generate weak keys using EVP_BytesToKey. Crucially, they have been removed in Node 22+, meaning the code is completely non-functional (runtime error).
+**Learning:** Legacy crypto APIs shouldn't be used, not just for security reasons, but because runtime upgrades (Node 22+) silently break the application as the functions become `undefined`.
+**Prevention:** Always use `crypto.createCipheriv` and `crypto.createDecipheriv` with a securely generated, explicit initialization vector (IV). Maintain awareness of deprecated Node.js APIs and modernize them before major runtime upgrades.
