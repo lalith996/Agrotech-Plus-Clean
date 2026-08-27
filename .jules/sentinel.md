@@ -1,0 +1,4 @@
+## 2024-05-18 - XSS Vulnerability in Blog Post Rendering
+**Vulnerability:** Found an XSS vulnerability in pages/blog/[slug].tsx where blog post content was directly rendered using dangerouslySetInnerHTML={{ __html: post.content }} without any sanitization.
+**Learning:** Even if data is sourced from internal content files, it should be treated as untrusted, especially in dynamic applications where content might be managed by an external CMS or database later. Using dangerouslySetInnerHTML directly is a common anti-pattern that leads to XSS.
+**Prevention:** Always sanitize HTML content before rendering it using libraries like isomorphic-dompurify in React applications, especially when dealing with SSR in Next.js to prevent hydration mismatches and ensure secure execution across both Node.js and browser environments.
