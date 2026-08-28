@@ -80,7 +80,7 @@ export function Header() {
             <span className="md:hidden">🌱 Fresh & Organic</span>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
+            <button aria-label="Select Language" className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
               <Globe className="w-4 h-4" />
               <span className="hidden sm:inline">Eng</span>
             </button>
@@ -233,7 +233,7 @@ export function Header() {
             {/* Icons Row */}
             <div className="flex items-center space-x-4">
               {/* Wishlist */}
-              <Link href="/wishlist" className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <Link aria-label="Wishlist" href="/wishlist" className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <Heart className="w-6 h-6 text-gray-700" />
                 {wishlistItemCount > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#00B207] text-white text-xs rounded-full">
@@ -329,7 +329,7 @@ export function Header() {
 
               {/* Mobile User Icon */}
               {!session && (
-                <Link href="/auth/signin" className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Link aria-label="User Profile" href="/auth/signin" className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors">
                   <User className="w-6 h-6 text-gray-700" />
                 </Link>
               )}
