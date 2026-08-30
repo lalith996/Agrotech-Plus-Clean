@@ -1,0 +1,4 @@
+## 2024-10-05 - Fix XSS in Blog Articles
+**Vulnerability:** The `BlogArticlePage` component in `pages/blog/[slug].tsx` uses `dangerouslySetInnerHTML` to render the content of a blog post, but it does not sanitize the HTML content before rendering it. This exposes the application to Cross-Site Scripting (XSS) vulnerabilities if the blog post content originates from an untrusted source or is compromised.
+**Learning:** React's `dangerouslySetInnerHTML` directly injects HTML into the DOM. Without proper sanitization, this bypasses React's built-in XSS protections. In Next.js (SSR) environments, it's crucial to use a library like `isomorphic-dompurify` to prevent hydration mismatches and ensure secure execution across both Node.js and browser environments.
+**Prevention:** Always sanitize any dynamic or user-generated HTML before passing it to `dangerouslySetInnerHTML`. Use libraries like `isomorphic-dompurify` for server-side rendering contexts.
