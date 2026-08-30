@@ -582,6 +582,7 @@ export function SearchFilter({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowFilters(false)}
+                aria-label="Close filters"
               >
                 <X className="w-4 h-4" />
               </Button>
