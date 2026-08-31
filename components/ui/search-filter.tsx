@@ -218,10 +218,33 @@ export function SearchFilter({
     }
   }, [showSaveSearch, userId])
 
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
+  // Performance optimization: Debounce search queries to reduce re-renders and API calls
+  // Expected impact: Eliminates unnecessary state changes and network requests on every keystroke
+  const debouncedSearchChange = useCallback(
+    (query: string, options: SearchOptions) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      timeoutRef.current = setTimeout(() => {
+        onSearchChange({ ...options, query, page: 1 })
+      }, 300)
+    },
+    [onSearchChange]
+  )
+
   const handleQueryChange = useCallback((query: string) => {
     setLocalQuery(query)
-    onSearchChange({ ...searchOptions, query, page: 1 })
-  }, [searchOptions, onSearchChange])
+    debouncedSearchChange(query, searchOptions)
+  }, [searchOptions, debouncedSearchChange])
 
   const handleFilterChange = useCallback((field: string, value: any) => {
     const newFilters = { ...localFilters, [field]: value }
