@@ -15,6 +15,7 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggleTheme}
       className="relative overflow-hidden"
+      aria-label="Toggle theme"
     >
       <motion.div
         initial={false}
