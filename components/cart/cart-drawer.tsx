@@ -130,15 +130,17 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
                           className="p-1 hover:bg-white rounded-full transition-colors"
                           disabled={item.quantity <= 1}
+                          aria-label={`Decrease quantity of ${item.name}`}
                         >
                           <Minus className="w-3 h-3 text-gray-600" />
                         </button>
-                        <span className="text-sm font-medium w-6 text-center">
+                        <span className="text-sm font-medium w-6 text-center" aria-live="polite">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
                           className="p-1 hover:bg-white rounded-full transition-colors"
+                          aria-label={`Increase quantity of ${item.name}`}
                         >
                           <Plus className="w-3 h-3 text-gray-600" />
                         </button>
@@ -147,6 +149,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <button
                         onClick={() => handleRemoveItem(item.productId, item.name)}
                         className="p-1 hover:bg-red-50 rounded-full transition-colors"
+                        aria-label={`Remove ${item.name} from cart`}
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
