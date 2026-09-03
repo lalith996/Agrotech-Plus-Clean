@@ -135,6 +135,8 @@ model Product {
   qcResults         QCResult[]
   subscriptionItems SubscriptionItem[]
 
+  // Optimize text searches and ordering by product name
+  @@index([name])
   @@map("products")
 }
 
