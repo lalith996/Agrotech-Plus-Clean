@@ -14,5 +14,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Build the Service Docker image
+      run: docker build ./ml --file ./ml/Dockerfile.service --tag my-image-name-service:$(date +%s)
+    - name: Build the Worker Docker image
+      run: docker build ./ml --file ./ml/Dockerfile.worker --tag my-image-name-worker:$(date +%s)
