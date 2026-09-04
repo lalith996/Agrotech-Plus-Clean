@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
 import Image from "next/image"
@@ -12,14 +12,14 @@ import { Slider } from "@/components/ui/slider"
 import { QuickViewModal } from "@/components/products/quick-view-modal"
 import { useCartStore } from "@/lib/stores/cart-store"
 import { useWishlistStore } from "@/lib/stores/wishlist-store"
-import { 
-  Search, 
-  Heart, 
-  ShoppingCart, 
-  Eye, 
-  Grid3x3, 
-  List, 
-  ChevronRight, 
+import {
+  Search,
+  Heart,
+  ShoppingCart,
+  Eye,
+  Grid3x3,
+  List,
+  ChevronRight,
   Star,
   ChevronDown,
   X
@@ -76,22 +76,20 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
   const [selectedFarmers, setSelectedFarmers] = useState<string[]>([])
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("all")
   const [ratingFilter, setRatingFilter] = useState<number>(0)
-  
+
   const [sortBy, setSortBy] = useState("featured")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [currentPage, setCurrentPage] = useState(1)
-  
+
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
-  
+
   const { addItem: addToCart } = useCartStore()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore()
 
@@ -103,63 +101,46 @@ export default function Products() {
     rating: true,
   })
 
-  // Debounce search term to prevent excessive API calls
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
-    }
-  }, [searchTerm])
-
   const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     try {
       const params = new URLSearchParams()
-      
-      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm)
+
+      if (searchTerm) params.append("search", searchTerm)
       selectedCategories.forEach(cat => params.append("categories[]", cat))
       selectedFarmers.forEach(farmerId => params.append("farmerIds[]", farmerId))
-      
+
       if (availabilityFilter !== "all") {
         params.append("availability", availabilityFilter)
       }
-      
+
       if (priceRange[0] > 0) params.append("minPrice", priceRange[0].toString())
       if (priceRange[1] < 1000) params.append("maxPrice", priceRange[1].toString())
-      
+
       if (ratingFilter > 0) {
         params.append("minRating", ratingFilter.toString())
       }
-      
+
       params.append("page", currentPage.toString())
       params.append("limit", "12")
 
       const response = await fetch(`/api/products?${params.toString()}`)
       if (!response.ok) throw new Error("Failed to fetch products")
-      
+
       const result = await response.json()
-      
+
       let products = result.products || []
-      
+
       if (sortBy === "price_low") {
         products.sort((a: Product, b: Product) => a.basePrice - b.basePrice)
       } else if (sortBy === "price_high") {
         products.sort((a: Product, b: Product) => b.basePrice - a.basePrice)
       } else if (sortBy === "newest") {
-        products.sort((a: Product, b: Product) => 
+        products.sort((a: Product, b: Product) =>
           new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         )
       }
-      
+
       setData({
         ...result,
         products,
@@ -170,7 +151,7 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }, [debouncedSearchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
+  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
   const fetchFarmers = useCallback(async () => {
     try {
@@ -275,7 +256,7 @@ export default function Products() {
     }).format(price)
   }
 
-  const activeFiltersCount = selectedCategories.length + selectedFarmers.length + 
+  const activeFiltersCount = selectedCategories.length + selectedFarmers.length +
     (availabilityFilter !== "all" ? 1 : 0) + (ratingFilter > 0 ? 1 : 0)
 
   return (
@@ -444,7 +425,7 @@ export default function Products() {
               <div className="text-sm text-gray-600">
                 Showing <span className="font-semibold text-gray-900">{data?.products.length || 0}</span> products
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Button
@@ -567,13 +548,13 @@ export default function Products() {
                         <Badge variant="secondary" className="mb-2 text-xs bg-gray-100">
                           {product.category}
                         </Badge>
-                        
+
                         <Link href={`/products/${product.id}`}>
                           <h3 className="font-semibold text-lg mb-1 hover:text-[#00B207] transition-colors line-clamp-1">
                             {product.name}
                           </h3>
                         </Link>
-                        
+
                         <p className="text-sm text-gray-600 mb-2">
                           by {product.farmer.farmName}
                         </p>
