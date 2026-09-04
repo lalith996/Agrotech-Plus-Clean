@@ -59,8 +59,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </h2>
           </div>
           <button
+            aria-label="Close cart"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-gray-400"
           >
             <X className="w-5 h-5 text-gray-600" />
           </button>
@@ -127,26 +128,29 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center space-x-2 bg-gray-100 rounded-full p-1">
                         <button
+                          aria-label={`Decrease quantity of ${item.name}`}
                           onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
-                          className="p-1 hover:bg-white rounded-full transition-colors"
+                          className="p-1 hover:bg-white rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-gray-400"
                           disabled={item.quantity <= 1}
                         >
                           <Minus className="w-3 h-3 text-gray-600" />
                         </button>
-                        <span className="text-sm font-medium w-6 text-center">
+                        <span aria-live="polite" className="text-sm font-medium w-6 text-center">
                           {item.quantity}
                         </span>
                         <button
+                          aria-label={`Increase quantity of ${item.name}`}
                           onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
-                          className="p-1 hover:bg-white rounded-full transition-colors"
+                          className="p-1 hover:bg-white rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-gray-400"
                         >
                           <Plus className="w-3 h-3 text-gray-600" />
                         </button>
                       </div>
                       
                       <button
+                        aria-label={`Remove ${item.name} from cart`}
                         onClick={() => handleRemoveItem(item.productId, item.name)}
-                        className="p-1 hover:bg-red-50 rounded-full transition-colors"
+                        className="p-1 hover:bg-red-50 rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-red-400"
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
