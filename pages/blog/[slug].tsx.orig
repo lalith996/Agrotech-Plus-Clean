@@ -5,7 +5,6 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react"
-import DOMPurify from 'isomorphic-dompurify'
 
 const blogPostsData: Record<string, any> = {
   "organic-farming-benefits": {
@@ -104,7 +103,7 @@ const relatedPosts = [
 export default function BlogArticlePage() {
   const router = useRouter()
   const { slug } = router.query
-  
+
   const post = slug ? blogPostsData[slug as string] : null
 
   if (!post) {
@@ -133,7 +132,7 @@ export default function BlogArticlePage() {
       twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`
     }
-    
+
     window.open(urls[platform], '_blank', 'width=600,height=400')
   }
 
@@ -237,9 +236,9 @@ export default function BlogArticlePage() {
               </div>
 
               {/* Article Content */}
-              <div 
+              <div
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
               {/* Author Bio */}
@@ -253,8 +252,8 @@ export default function BlogArticlePage() {
                       About {post.author}
                     </h3>
                     <p className="text-gray-600">
-                      {post.author} is a passionate advocate for sustainable agriculture and organic farming. 
-                      With years of experience in the field, they share valuable insights to help farmers and 
+                      {post.author} is a passionate advocate for sustainable agriculture and organic farming.
+                      With years of experience in the field, they share valuable insights to help farmers and
                       consumers make informed decisions about organic produce.
                     </p>
                   </div>
