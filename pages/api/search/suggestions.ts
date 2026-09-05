@@ -169,87 +169,98 @@ async function getDatabaseSuggestions(query: string, limit: number, type: string
   const suggestions: any[] = [];
 
   try {
+    const promises: Promise<void>[] = [];
+
     if (type === 'all' || type === 'products') {
       // Product suggestions
-      const products = await prisma.product.findMany({
-        where: {
-          isActive: true,
-          name: {
-            contains: query,
-            mode: 'insensitive'
-          }
-        },
-        select: {
-          name: true,
-          category: true
-        },
-        take: Math.ceil(limit / 3),
-        orderBy: { name: 'asc' }
-      });
-
-      suggestions.push(...products.map(p => ({
-        text: p.name,
-        type: 'product',
-        category: p.category,
-        score: calculateRelevanceScore(p.name, query)
-      })));
+      promises.push(
+        prisma.product.findMany({
+          where: {
+            isActive: true,
+            name: {
+              contains: query,
+              mode: 'insensitive'
+            }
+          },
+          select: {
+            name: true,
+            category: true
+          },
+          take: Math.ceil(limit / 3),
+          orderBy: { name: 'asc' }
+        }).then(products => {
+          suggestions.push(...products.map(p => ({
+            text: p.name,
+            type: 'product',
+            category: p.category,
+            score: calculateRelevanceScore(p.name, query)
+          })));
+        })
+      );
     }
 
     if (type === 'all' || type === 'farmers') {
       // Farmer suggestions
-      const farmers = await prisma.farmer.findMany({
-        where: {
-          isApproved: true,
-          farmName: {
-            contains: query,
-            mode: 'insensitive'
-          }
-        },
-        select: {
-          farmName: true,
-          location: true
-        },
-        take: Math.ceil(limit / 3),
-        orderBy: { farmName: 'asc' }
-      });
-
-      suggestions.push(...farmers.map(f => ({
-        text: f.farmName,
-        type: 'farmer',
-        location: f.location,
-        score: calculateRelevanceScore(f.farmName, query)
-      })));
+      promises.push(
+        prisma.farmer.findMany({
+          where: {
+            isApproved: true,
+            farmName: {
+              contains: query,
+              mode: 'insensitive'
+            }
+          },
+          select: {
+            farmName: true,
+            location: true
+          },
+          take: Math.ceil(limit / 3),
+          orderBy: { farmName: 'asc' }
+        }).then(farmers => {
+          suggestions.push(...farmers.map(f => ({
+            text: f.farmName,
+            type: 'farmer',
+            location: f.location,
+            score: calculateRelevanceScore(f.farmName, query)
+          })));
+        })
+      );
     }
 
     if (type === 'all' || type === 'categories') {
       // Category suggestions
-      const categories = await prisma.product.groupBy({
-        by: ['category'],
-        where: {
-          isActive: true,
-          category: {
-            contains: query,
-            mode: 'insensitive'
-          }
-        },
-        _count: {
-          category: true
-        },
-        orderBy: {
+      promises.push(
+        prisma.product.groupBy({
+          by: ['category'],
+          where: {
+            isActive: true,
+            category: {
+              contains: query,
+              mode: 'insensitive'
+            }
+          },
           _count: {
-            category: 'desc'
-          }
-        },
-        take: Math.ceil(limit / 3)
-      });
-
-      suggestions.push(...categories.map(c => ({
-        text: c.category,
-        type: 'category',
-        count: c._count.category,
-        score: calculateRelevanceScore(c.category, query)
-      })));
+            category: true
+          },
+          orderBy: {
+            _count: {
+              category: 'desc'
+            }
+          },
+          take: Math.ceil(limit / 3)
+        }).then(categories => {
+          suggestions.push(...categories.map(c => ({
+            text: c.category,
+            type: 'category',
+            count: c._count.category,
+            score: calculateRelevanceScore(c.category, query)
+          })));
+        })
+      );
     }
+
+    // Optimize database suggestions by running independent queries concurrently
+    await Promise.all(promises);
 
     // Sort by relevance score and limit results
     return suggestions
