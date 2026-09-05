@@ -237,6 +237,7 @@ export default function BlogArticlePage() {
               </div>
 
               {/* Article Content */}
+              {/* Sanitize user-generated HTML to prevent XSS attacks */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
