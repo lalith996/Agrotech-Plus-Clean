@@ -175,30 +175,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const priceRangeSize = Math.ceil((maxPrice - minPrice) / 5);
 
         const priceRanges = [];
+        const priceRangePromises = [];
+
         for (let i = 0; i < 5; i++) {
           const rangeMin = minPrice + i * priceRangeSize;
           const rangeMax = i === 4 ? maxPrice : minPrice + (i + 1) * priceRangeSize;
           
-          // Count products in this price range
-          const count = await prisma.product.count({
-            where: {
-              ...baseFilters,
-              basePrice: {
-                gte: rangeMin,
-                lte: rangeMax
+          // Count products in this price range concurrently
+          priceRangePromises.push(
+            prisma.product.count({
+              where: {
+                ...baseFilters,
+                basePrice: {
+                  gte: rangeMin,
+                  lte: rangeMax
+                }
               }
-            }
-          });
-
-          if (count > 0) {
-            priceRanges.push({
-              range: `${rangeMin}-${rangeMax}`,
-              min: rangeMin,
-              max: rangeMax,
-              count
-            });
-          }
+            }).then(count => {
+              if (count > 0) {
+                priceRanges.push({
+                  range: `${rangeMin}-${rangeMax}`,
+                  min: rangeMin,
+                  max: rangeMax,
+                  count
+                });
+              }
+            })
+          );
         }
+
+        // Wait for all price range count queries to complete
+        await Promise.all(priceRangePromises);
+
+        // Sort price ranges to ensure they are in order after concurrent resolution
+        priceRanges.sort((a, b) => a.min - b.min);
 
         return {
           categories: categories.map(cat => ({
