@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
 import Image from "next/image"
@@ -102,7 +102,7 @@ export default function Products() {
     rating: true,
   })
 
-  // Optimize text searches and ordering by product name
+  // Optimize text searches by debouncing the search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
