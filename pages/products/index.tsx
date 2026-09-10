@@ -76,6 +76,7 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
@@ -101,12 +102,20 @@ export default function Products() {
     rating: true,
   })
 
+  // Optimize text searches by debouncing the search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     try {
       const params = new URLSearchParams()
       
-      if (searchTerm) params.append("search", searchTerm)
+      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm)
       selectedCategories.forEach(cat => params.append("categories[]", cat))
       selectedFarmers.forEach(farmerId => params.append("farmerIds[]", farmerId))
       
@@ -151,7 +160,7 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
+  }, [debouncedSearchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
   const fetchFarmers = useCallback(async () => {
     try {
@@ -179,11 +188,6 @@ export default function Products() {
   useEffect(() => {
     fetchFarmers()
   }, [fetchFarmers])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    fetchProducts()
-  }
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories(prev =>
@@ -408,7 +412,7 @@ export default function Products() {
           </aside>
 
           <main className="flex-1">
-            <form onSubmit={handleSearch} className="mb-6">
+            <form onSubmit={(e) => e.preventDefault()} className="mb-6">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
