@@ -1,0 +1,3 @@
+## 2023-10-27 - Cart Drawer Accessibility Improvements
+**Learning:** Icon-only buttons for critical actions (like removing items or changing quantity in the cart drawer) are completely inaccessible to screen reader users without proper ARIA labels. Additionally, dynamically updating values like quantity need `aria-live` to be announced on change, and keyboard users need clear focus indicators.
+**Action:** When implementing interactive cart components, ensure all icon-only controls have descriptive `aria-label`s, dynamic quantity displays use `aria-live="polite"`, and all interactive elements have visible focus states using `focus-visible:ring-2`.
