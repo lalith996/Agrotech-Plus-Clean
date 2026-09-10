@@ -1,5 +1,4 @@
 FROM node:22-alpine AS base
-RUN npm install -g pnpm
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -8,9 +7,9 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json package-lock.json* pnpm-lock.yaml* ./
 COPY prisma ./prisma/
-RUN pnpm install --frozen-lockfile
+RUN corepack enable pnpm && pnpm install
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -23,8 +22,7 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npx prisma generate
-RUN pnpm run build
+RUN corepack enable pnpm && npx prisma generate && pnpm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -43,9 +41,7 @@ COPY --from=builder /app/public ./public
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-# COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# Copy the standard build output
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
