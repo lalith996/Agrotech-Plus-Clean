@@ -12,6 +12,9 @@
     "test:coverage": "jest --coverage",
     "postinstall": "prisma generate"
   },
+  "pnpm": {
+    "minimumReleaseAge": "0"
+  },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@heroicons/react": "^2.2.0",
