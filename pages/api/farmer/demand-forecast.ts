@@ -80,59 +80,61 @@ export default async function handler(
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+      // Get historical order data for last 30 days for all products in one O(1) query
+      const historicalOrders = await prisma.orderItem.findMany({
+        where: {
+          productId: { in: productIds },
+          order: {
+            createdAt: { gte: thirtyDaysAgo },
+            status: {
+              in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"]
+            }
+          }
+        },
+        select: {
+          productId: true,
+          quantity: true
+        }
+      })
+
+      // Group historical orders by productId in memory
+      const orderGroups = historicalOrders.reduce((acc, item) => {
+        if (!acc[item.productId]) {
+          acc[item.productId] = { totalQuantity: 0, count: 0 }
+        }
+        acc[item.productId].totalQuantity += item.quantity
+        acc[item.productId].count += 1
+        return acc
+      }, {} as Record<string, { totalQuantity: number, count: number }>)
+
       // Calculate historical averages for each product
-      const forecasts = await Promise.all(
-        products.map(async (product) => {
-          // Get historical order data for last 30 days
-          const historicalOrders = await prisma.orderItem.findMany({
-            where: {
-              productId: product.id,
-              order: {
-                createdAt: { gte: thirtyDaysAgo },
-                status: { 
-                  in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] 
-                }
-              }
-            },
-            select: {
-              quantity: true,
-              order: {
-                select: {
-                  createdAt: true
-                }
-              }
-            }
-          })
+      const forecasts = products.map((product) => {
+        const group = orderGroups[product.id] || { totalQuantity: 0, count: 0 }
+        const totalQuantity = group.totalQuantity
+        const orderCount = group.count
 
-          // Calculate daily average
-          const totalQuantity = historicalOrders.reduce(
-            (sum, item) => sum + item.quantity, 
-            0
-          )
-          const avgDailyDemand = historicalOrders.length > 0 
-            ? totalQuantity / 30 
-            : 0
+        // Calculate daily average
+        const avgDailyDemand = totalQuantity / 30
 
-          // Generate predictions with slight variation (±10%)
-          const predictions = Array.from({ length: forecastDays }, (_, i) => {
-            const variation = 1 + (Math.random() * 0.2 - 0.1) // ±10%
-            const quantity = Math.max(0, Math.round(avgDailyDemand * variation))
-            const forecastDate = new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000)
-            
-            return {
-              date: forecastDate.toISOString().split('T')[0],
-              quantity,
-              confidence: historicalOrders.length > 5 ? 0.75 : 0.5 // Lower confidence with less data
-            }
-          })
+        // Generate predictions with slight variation (±10%)
+        const predictions = Array.from({ length: forecastDays }, (_, i) => {
+          const variation = 1 + (Math.random() * 0.2 - 0.1) // ±10%
+          const quantity = Math.max(0, Math.round(avgDailyDemand * variation))
+          const forecastDate = new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000)
 
           return {
-            productId: product.id,
-            productName: product.name,
-            predictions
+            date: forecastDate.toISOString().split('T')[0],
+            quantity,
+            confidence: orderCount > 5 ? 0.75 : 0.5 // Lower confidence with less data
           }
         })
-      )
+
+        return {
+          productId: product.id,
+          productName: product.name,
+          predictions
+        }
+      })
 
       // Calculate overall accuracy based on data availability
       const totalHistoricalData = forecasts.reduce((sum, f) => 
