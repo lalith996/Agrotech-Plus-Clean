@@ -184,7 +184,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                 >
                   <Minus className="w-4 h-4" />
                 </Button>
-                <span className="text-lg font-medium w-12 text-center">{quantity}</span>
+                <span className="text-lg font-medium w-12 text-center" aria-live="polite">{quantity}</span>
                 <Button
                   variant="outline"
                   size="icon"
