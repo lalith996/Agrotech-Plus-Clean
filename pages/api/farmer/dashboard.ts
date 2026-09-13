@@ -138,31 +138,35 @@ export default async function handler(
         take: 5
       })
 
-      // Generate simple demand forecast based on historical averages (placeholder)
-      const demandForecast = await Promise.all(
-        products.map(async (product) => {
-          const historicalOrders = await prisma.orderItem.aggregate({
-            where: {
-              productId: product.id,
-              order: {
-                createdAt: { gte: startOfMonth },
-                status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
-              }
-            },
-            _sum: { quantity: true }
-          })
+      const productIds = products.map(p => p.id)
 
-          const avgDailyDemand = (historicalOrders._sum.quantity || 0) / 30
-          
-          return Array.from({ length: 7 }, (_, i) => ({
-            productId: product.id,
-            productName: product.name,
-            quantity: Math.round(avgDailyDemand * (1 + (Math.random() * 0.2 - 0.1))), // ±10% variation
-            date: new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            confidence: 0.75 // Placeholder confidence
-          }))
-        })
-      )
+      const historicalOrdersGroups = await prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          productId: { in: productIds },
+          order: {
+            createdAt: { gte: startOfMonth },
+            status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
+          }
+        },
+        _sum: { quantity: true }
+      })
+
+      const orderMap = new Map(historicalOrdersGroups.map(ho => [ho.productId, ho._sum.quantity || 0]))
+
+      // Generate simple demand forecast based on historical averages (placeholder)
+      const demandForecast = products.map((product) => {
+        const totalQuantity = orderMap.get(product.id) || 0
+        const avgDailyDemand = totalQuantity / 30
+
+        return Array.from({ length: 7 }, (_, i) => ({
+          productId: product.id,
+          productName: product.name,
+          quantity: Math.round(avgDailyDemand * (1 + (Math.random() * 0.2 - 0.1))), // ±10% variation
+          date: new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          confidence: 0.75 // Placeholder confidence
+        }))
+      })
 
       // Generate alerts
       const alerts = []

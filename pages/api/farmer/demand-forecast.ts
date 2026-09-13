@@ -80,59 +80,52 @@ export default async function handler(
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+      // Fetch all historical order item sums in one O(1) query
+      const historicalOrders = await prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          productId: { in: productIds },
+          order: {
+            createdAt: { gte: thirtyDaysAgo },
+            status: {
+              in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"]
+            }
+          }
+        },
+        _sum: { quantity: true },
+        _count: { _all: true }
+      })
+
+      const orderMap = new Map(historicalOrders.map(ho => [ho.productId, ho]))
+
       // Calculate historical averages for each product
-      const forecasts = await Promise.all(
-        products.map(async (product) => {
-          // Get historical order data for last 30 days
-          const historicalOrders = await prisma.orderItem.findMany({
-            where: {
-              productId: product.id,
-              order: {
-                createdAt: { gte: thirtyDaysAgo },
-                status: { 
-                  in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] 
-                }
-              }
-            },
-            select: {
-              quantity: true,
-              order: {
-                select: {
-                  createdAt: true
-                }
-              }
-            }
-          })
+      const forecasts = products.map((product) => {
+        const orderData = orderMap.get(product.id)
+        const totalQuantity = orderData?._sum.quantity || 0
+        const orderCount = orderData?._count._all || 0
 
-          // Calculate daily average
-          const totalQuantity = historicalOrders.reduce(
-            (sum, item) => sum + item.quantity, 
-            0
-          )
-          const avgDailyDemand = historicalOrders.length > 0 
-            ? totalQuantity / 30 
-            : 0
+        // Calculate daily average
+        const avgDailyDemand = totalQuantity / 30
 
-          // Generate predictions with slight variation (±10%)
-          const predictions = Array.from({ length: forecastDays }, (_, i) => {
-            const variation = 1 + (Math.random() * 0.2 - 0.1) // ±10%
-            const quantity = Math.max(0, Math.round(avgDailyDemand * variation))
-            const forecastDate = new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000)
-            
-            return {
-              date: forecastDate.toISOString().split('T')[0],
-              quantity,
-              confidence: historicalOrders.length > 5 ? 0.75 : 0.5 // Lower confidence with less data
-            }
-          })
+        // Generate predictions with slight variation (±10%)
+        const predictions = Array.from({ length: forecastDays }, (_, i) => {
+          const variation = 1 + (Math.random() * 0.2 - 0.1) // ±10%
+          const quantity = Math.max(0, Math.round(avgDailyDemand * variation))
+          const forecastDate = new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000)
 
           return {
-            productId: product.id,
-            productName: product.name,
-            predictions
+            date: forecastDate.toISOString().split('T')[0],
+            quantity,
+            confidence: orderCount > 5 ? 0.75 : 0.5 // Lower confidence with less data
           }
         })
-      )
+
+        return {
+          productId: product.id,
+          productName: product.name,
+          predictions
+        }
+      })
 
       // Calculate overall accuracy based on data availability
       const totalHistoricalData = forecasts.reduce((sum, f) => 

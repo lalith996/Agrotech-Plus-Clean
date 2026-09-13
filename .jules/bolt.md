@@ -1,0 +1,3 @@
+## 2025-05-18 - [N+1 Query Bottleneck in Farmer Dashboard & Forecast]
+**Learning:** Found a severe N+1 query issue in `pages/api/farmer/demand-forecast.ts` and `pages/api/farmer/dashboard.ts`. The codebase was iterating over a farmer's products and running `prisma.orderItem.aggregate` (or `findMany`) inside a `Promise.all` map to calculate historical demand. This causes N queries for a farmer with N products, slowing down the dashboard API significantly.
+**Action:** When calculating aggregations across multiple related entities (like order history for multiple products), use Prisma's `groupBy` feature to fetch all necessary data in a single O(1) query, then map the results in memory.
