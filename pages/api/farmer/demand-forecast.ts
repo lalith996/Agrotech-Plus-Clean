@@ -80,9 +80,8 @@ export default async function handler(
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-      // Fetch all historical order item sums in one O(1) query
-      const historicalOrders = await prisma.orderItem.groupBy({
-        by: ['productId'],
+      // Get historical order data for last 30 days for all products in one O(1) query
+      const historicalOrders = await prisma.orderItem.findMany({
         where: {
           productId: { in: productIds },
           order: {
@@ -92,17 +91,27 @@ export default async function handler(
             }
           }
         },
-        _sum: { quantity: true },
-        _count: { _all: true }
+        select: {
+          productId: true,
+          quantity: true
+        }
       })
 
-      const orderMap = new Map(historicalOrders.map(ho => [ho.productId, ho]))
+      // Group historical orders by productId in memory
+      const orderGroups = historicalOrders.reduce((acc, item) => {
+        if (!acc[item.productId]) {
+          acc[item.productId] = { totalQuantity: 0, count: 0 }
+        }
+        acc[item.productId].totalQuantity += item.quantity
+        acc[item.productId].count += 1
+        return acc
+      }, {} as Record<string, { totalQuantity: number, count: number }>)
 
       // Calculate historical averages for each product
       const forecasts = products.map((product) => {
-        const orderData = orderMap.get(product.id)
-        const totalQuantity = orderData?._sum.quantity || 0
-        const orderCount = orderData?._count._all || 0
+        const group = orderGroups[product.id] || { totalQuantity: 0, count: 0 }
+        const totalQuantity = group.totalQuantity
+        const orderCount = group.count
 
         // Calculate daily average
         const avgDailyDemand = totalQuantity / 30

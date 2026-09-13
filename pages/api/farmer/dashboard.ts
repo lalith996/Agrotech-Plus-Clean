@@ -140,8 +140,7 @@ export default async function handler(
 
       const productIds = products.map(p => p.id)
 
-      const historicalOrdersGroups = await prisma.orderItem.groupBy({
-        by: ['productId'],
+      const historicalOrdersGroups = await prisma.orderItem.findMany({
         where: {
           productId: { in: productIds },
           order: {
@@ -149,14 +148,21 @@ export default async function handler(
             status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
           }
         },
-        _sum: { quantity: true }
+        select: {
+          productId: true,
+          quantity: true
+        }
       })
 
-      const orderMap = new Map(historicalOrdersGroups.map(ho => [ho.productId, ho._sum.quantity || 0]))
+      const orderGroups = historicalOrdersGroups.reduce((acc, item) => {
+        if (!acc[item.productId]) acc[item.productId] = 0
+        acc[item.productId] += item.quantity
+        return acc
+      }, {} as Record<string, number>)
 
       // Generate simple demand forecast based on historical averages (placeholder)
       const demandForecast = products.map((product) => {
-        const totalQuantity = orderMap.get(product.id) || 0
+        const totalQuantity = orderGroups[product.id] || 0
         const avgDailyDemand = totalQuantity / 30
 
         return Array.from({ length: 7 }, (_, i) => ({
