@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN corepack enable pnpm && pnpm config set config.ignore-scripts false && pnpm install --frozen-lockfile=false
+RUN corepack enable pnpm && pnpm config set ignore-scripts false && pnpm install --frozen-lockfile=false
 
 # Rebuild the source code only when needed
 FROM base AS builder
