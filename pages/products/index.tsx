@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -76,6 +77,7 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 1000])
@@ -106,7 +108,8 @@ export default function Products() {
     try {
       const params = new URLSearchParams()
       
-      if (searchTerm) params.append("search", searchTerm)
+      // Optimize text searches by debouncing the input
+      if (debouncedSearchTerm) params.append("search", debouncedSearchTerm)
       selectedCategories.forEach(cat => params.append("categories[]", cat))
       selectedFarmers.forEach(farmerId => params.append("farmerIds[]", farmerId))
       
@@ -151,7 +154,7 @@ export default function Products() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
+  }, [debouncedSearchTerm, selectedCategories, selectedFarmers, availabilityFilter, priceRange, ratingFilter, currentPage, sortBy])
 
   const fetchFarmers = useCallback(async () => {
     try {
