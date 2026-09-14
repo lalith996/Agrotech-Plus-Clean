@@ -80,7 +80,7 @@ export function Header() {
             <span className="md:hidden">🌱 Fresh & Organic</span>
           </div>
           <div className="flex items-center space-x-4">
-            <button aria-label="Select language" className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
+            <button className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
               <Globe className="w-4 h-4" />
               <span className="hidden sm:inline">Eng</span>
             </button>
@@ -145,11 +145,7 @@ export function Header() {
                   }, 150)
                 }}
               >
-                <button
-                  className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none"
-                  aria-haspopup="menu"
-                  aria-expanded={showShopDropdown}
-                >
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none">
                   <span>Shop</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
@@ -197,11 +193,7 @@ export function Header() {
                   }, 150)
                 }}
               >
-                <button
-                  className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none"
-                  aria-haspopup="menu"
-                  aria-expanded={showPagesDropdown}
-                >
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none">
                   <span>Pages</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
