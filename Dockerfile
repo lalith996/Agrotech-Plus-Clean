@@ -7,6 +7,7 @@ RUN apk add --no-cache openssl ca-certificates python3 make g++
 
 COPY package*.json ./
 COPY pnpm-lock.yaml* ./
+COPY prisma ./prisma/
 
 # Install pnpm
 RUN npm install -g pnpm
