@@ -12,8 +12,8 @@ COPY prisma ./prisma/
 # Install pnpm
 RUN npm install -g pnpm
 
-# Install project dependencies
-RUN pnpm install
+# Install project dependencies, ignoring scripts so postinstall doesn't run prematurely
+RUN pnpm install --ignore-scripts
 
 # Copy project files
 COPY . .
