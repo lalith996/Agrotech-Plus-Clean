@@ -40,21 +40,35 @@ const CheckoutForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-      />
-      <input
-        type="tel"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        placeholder="Phone number"
-        required
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium mb-1">
+          Email <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+          className="w-full px-3 py-2 border rounded-md"
+        />
+      </div>
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium mb-1">
+          Phone number <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Phone number"
+          required
+          className="w-full px-3 py-2 border rounded-md"
+        />
+      </div>
       
       {message && (
         <div className={`message ${message.includes('success') ? 'success' : 'error'}`}>
