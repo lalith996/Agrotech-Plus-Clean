@@ -110,10 +110,10 @@ export default async function handler(
       const paginatedProducts = filteredProducts.slice(skip, skip + limitNum)
 
       // Get unique categories for filtering
-      const uniqueCategories = await prisma.product.findMany({
+      // Optimize DB performance by using groupBy which generates an efficient SQL GROUP BY instead of SELECT DISTINCT
+      const uniqueCategories = await prisma.product.groupBy({
         where: { isActive: true },
-        select: { category: true },
-        distinct: ["category"],
+        by: ["category"],
       })
 
       res.status(200).json({
