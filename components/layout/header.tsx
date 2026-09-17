@@ -80,11 +80,11 @@ export function Header() {
             <span className="md:hidden">🌱 Fresh & Organic</span>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
+            <button aria-label="Change language" className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
               <Globe className="w-4 h-4" />
               <span className="hidden sm:inline">Eng</span>
             </button>
-            <Link href="/help" className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
+            <Link href="/help" aria-label="Help" className="flex items-center space-x-1 hover:opacity-80 transition-opacity">
               <HelpCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Help</span>
             </Link>
