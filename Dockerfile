@@ -3,7 +3,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Enable corepack and prepare pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
 
 # Copy package files and prisma schema
 COPY package.json pnpm-lock.yaml ./
