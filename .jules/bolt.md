@@ -1,0 +1,3 @@
+## 2024-05-20 - [Prisma groupBy vs findMany relation fetching]
+**Learning:** While `groupBy` is often faster than `findMany` with `distinct` for simple distinct scalar values (e.g., product categories), you cannot fetch relations inside a `groupBy` query in Prisma. Attempting to switch a `findMany` (which fetches relations efficiently via JOINS) to a `groupBy` (requiring subsequent `findMany` queries for the relations) degrades performance by introducing extra queries and network round-trips.
+**Action:** When evaluating `distinct` vs `groupBy` optimizations in Prisma, check if the query involves relation fetching (`include` or nested `select`). If it does, stick with `findMany`. Only use `groupBy` for simple scalar grouping.

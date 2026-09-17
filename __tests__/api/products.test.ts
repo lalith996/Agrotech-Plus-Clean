@@ -51,6 +51,7 @@ describe('Product API Endpoints', () => {
   describe('GET /api/products', () => {
     it('returns products list with default filters', async () => {
       prismaMock.product.findMany.mockResolvedValue([mockProduct]);
+      prismaMock.product.groupBy.mockResolvedValue([{ category: mockProduct.category }] as any);
 
       const { req, res } = createMocks({
         method: 'GET',

@@ -110,10 +110,10 @@ export default async function handler(
       const paginatedProducts = filteredProducts.slice(skip, skip + limitNum)
 
       // Get unique categories for filtering
-      const uniqueCategories = await prisma.product.findMany({
+      // Optimize distinct scalar fetching using groupBy instead of findMany
+      const uniqueCategories = await prisma.product.groupBy({
+        by: ['category'],
         where: { isActive: true },
-        select: { category: true },
-        distinct: ["category"],
       })
 
       res.status(200).json({
