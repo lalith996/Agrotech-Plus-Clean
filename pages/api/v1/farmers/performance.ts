@@ -48,20 +48,25 @@ type FarmerPerformance = {
 }
 
 async function getAcceptanceRatesPerDelivery(farmerId: string): Promise<number[]> {
+  // OPTIMIZATION: Fixed N+1 query issue.
+  // Instead of fetching deliveries and then running a separate query for qCResult in a loop,
+  // we use Prisma's nested select to eager-load all qcResults in a single database roundtrip.
+  // Expected Impact: Reduces database queries from O(N) to O(1) per farmer, significantly improving latency.
   const deliveries = await prisma.farmerDelivery.findMany({
     where: { farmerId },
-    select: { id: true },
+    select: {
+      qcResults: {
+        select: { expectedQuantity: true, acceptedQuantity: true }
+      }
+    },
     orderBy: { deliveryDate: 'asc' },
   })
   if (!deliveries.length) return []
 
   const rates: number[] = []
   for (const d of deliveries) {
-    const qs = await prisma.qCResult.findMany({
-      where: { farmerDeliveryId: d.id },
-      select: { expectedQuantity: true, acceptedQuantity: true },
-    })
-    if (!qs.length) {
+    const qs = d.qcResults
+    if (!qs || !qs.length) {
       continue
     }
     const expected = qs.reduce((acc, r) => acc + (r.expectedQuantity || 0), 0)
