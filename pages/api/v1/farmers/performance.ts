@@ -212,22 +212,16 @@ async function computeMetricsForFarmer(farmerId: string): Promise<{ breakdown: M
   const sustainabilityRaw = validCerts > 0 ? 0.8 + Math.min(0.2, validCerts * 0.05) : 0.4 // 0-1 scale
 
   // Customer feedback proxy: repeat purchase rate for products from this farmer
-  const orders = await prisma.order.findMany({
+  // Performance optimization: use groupBy to avoid fetching all orders and their items
+  const customerCounts = await prisma.order.groupBy({
+    by: ['customerId'],
     where: {
-      items: { some: { product: { farmerId } } },
+      items: { some: { product: { farmerId } } }
     },
-    include: { items: { include: { product: { select: { farmerId: true } } } }, customer: { select: { id: true } } },
+    _count: { _all: true }
   })
-  const purchasesByCustomer = new Map<string, number>()
-  for (const o of orders) {
-    const containsFarmerProduct = o.items.some(i => i.product.farmerId === farmerId)
-    if (!containsFarmerProduct || !o.customer) continue
-    const key = o.customer.id
-    purchasesByCustomer.set(key, (purchasesByCustomer.get(key) || 0) + 1)
-  }
-  const customers = Array.from(purchasesByCustomer.values())
-  const uniqueCustomers = customers.length
-  const repeatCustomers = customers.filter(cnt => cnt >= 2).length
+  const uniqueCustomers = customerCounts.length
+  const repeatCustomers = customerCounts.filter(c => c._count._all >= 2).length
   const repeatRate = uniqueCustomers > 0 ? repeatCustomers / uniqueCustomers : 0
   const customerFeedbackRaw = 0.4 + 0.6 * repeatRate // 0-1 scale
 
