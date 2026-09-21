@@ -142,30 +142,33 @@ export default async function handler(
       const procurementItems: ProcurementItem[] = []
       const farmerIds = new Set<string>()
 
-      for (const [productId, requirement] of productRequirements.entries()) {
-        // Get all farmers who have this product
-        const availableFarmers = await prisma.product.findMany({
-          where: {
-            id: productId,
-            isActive: true,
-            farmer: {
-              isApproved: true
-            }
-          },
-          include: {
-            farmer: {
-              include: {
-                user: true,
-                qcResults: {
-                  orderBy: {
-                    timestamp: 'desc'
-                  },
-                  take: 10 // Last 10 QC results for quality score
-                }
+      // PERFORMANCE OPTIMIZATION: Fix N+1 query problem by batching
+      // fetching farmers for all required products in a single DB query
+      const productIds = Array.from(productRequirements.keys())
+      const allAvailableFarmers = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          isActive: true,
+          farmer: {
+            isApproved: true
+          }
+        },
+        include: {
+          farmer: {
+            include: {
+              user: true,
+              qcResults: {
+                orderBy: { timestamp: 'desc' },
+                take: 10
               }
             }
           }
-        })
+        }
+      })
+
+      for (const [productId, requirement] of productRequirements.entries()) {
+        // Filter from pre-fetched farmers
+        const availableFarmers = allAvailableFarmers.filter(f => f.id === productId)
 
         if (availableFarmers.length === 0) {
           // No farmers available for this product
