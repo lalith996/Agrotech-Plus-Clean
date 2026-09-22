@@ -11,4 +11,9 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+const withNextConfig = {
+  ...nextConfig,
+  serverExternalPackages: ["sharp", "stripe", "@elastic/elasticsearch"],
+};
+
+module.exports = withNextConfig;
