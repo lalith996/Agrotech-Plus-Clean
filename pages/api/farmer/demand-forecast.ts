@@ -89,8 +89,8 @@ export default async function handler(
               productId: product.id,
               order: {
                 createdAt: { gte: thirtyDaysAgo },
-                status: { 
-                  in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] 
+                status: {
+                  in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"]
                 }
               }
             },
@@ -106,11 +106,11 @@ export default async function handler(
 
           // Calculate daily average
           const totalQuantity = historicalOrders.reduce(
-            (sum, item) => sum + item.quantity, 
+            (sum, item) => sum + item.quantity,
             0
           )
-          const avgDailyDemand = historicalOrders.length > 0 
-            ? totalQuantity / 30 
+          const avgDailyDemand = historicalOrders.length > 0
+            ? totalQuantity / 30
             : 0
 
           // Generate predictions with slight variation (±10%)
@@ -118,7 +118,7 @@ export default async function handler(
             const variation = 1 + (Math.random() * 0.2 - 0.1) // ±10%
             const quantity = Math.max(0, Math.round(avgDailyDemand * variation))
             const forecastDate = new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000)
-            
+
             return {
               date: forecastDate.toISOString().split('T')[0],
               quantity,
