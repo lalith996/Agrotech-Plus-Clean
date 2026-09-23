@@ -38,33 +38,33 @@ export default async function handler(
         orderBy: { deliveryDate: "asc" }
       })
 
-      // Mock product requirements for each delivery
-      const deliveriesWithProducts = await Promise.all(
-        deliveries.map(async (delivery) => {
-          // Get farmer's products to simulate requirements
-          const products = await prisma.product.findMany({
-            where: { 
-              farmerId: farmer.id,
-              isActive: true
-            },
-            take: 3 // Simulate 3 products per delivery
-          })
+      // ⚡ BOLT OPTIMIZATION: Hoisted invariant query outside the loop
+      // Previously, this fetched the exact same products for every delivery, causing an N+1 performance issue.
+      // Fetching once reduces DB queries from O(N) to O(1).
+      const products = await prisma.product.findMany({
+        where: {
+          farmerId: farmer.id,
+          isActive: true
+        },
+        take: 3 // Simulate 3 products per delivery
+      })
 
-          return {
-            id: delivery.id,
-            deliveryDate: delivery.deliveryDate.toISOString(),
-            status: delivery.status,
-            notes: delivery.notes,
-            products: products.map(product => ({
-              id: product.id,
-              name: product.name,
-              requiredQuantity: Math.floor(Math.random() * 20) + 5, // Mock quantity
-              unit: product.unit,
-              specifications: `Grade A quality, ${product.description?.slice(0, 50)}...`
-            }))
-          }
-        })
-      )
+      // Mock product requirements for each delivery
+      const deliveriesWithProducts = deliveries.map((delivery) => {
+        return {
+          id: delivery.id,
+          deliveryDate: delivery.deliveryDate.toISOString(),
+          status: delivery.status,
+          notes: delivery.notes,
+          products: products.map(product => ({
+            id: product.id,
+            name: product.name,
+            requiredQuantity: Math.floor(Math.random() * 20) + 5, // Mock quantity
+            unit: product.unit,
+            specifications: `Grade A quality, ${product.description?.slice(0, 50)}...`
+          }))
+        }
+      })
 
       res.status(200).json({ deliveries: deliveriesWithProducts })
     } catch (error) {
