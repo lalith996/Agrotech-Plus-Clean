@@ -3,8 +3,6 @@ FROM node:20-alpine AS base
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
-# The repo actually has a package-lock.json! We will use npm ci.
 COPY package.json package-lock.json ./
 RUN npm ci
 
