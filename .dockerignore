@@ -1,0 +1,15 @@
+.git
+.gitignore
+.github
+node_modules
+npm-debug.log
+README.md
+.next
+.swc
+*.pem
+
+# keep .env for build purposes as it might be needed, or ignore it if not
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
