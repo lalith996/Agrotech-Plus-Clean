@@ -5,7 +5,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Enable pnpm
-RUN corepack enable pnpm
+RUN corepack enable pnpm && corepack prepare pnpm@10.30.3 --activate
 
 COPY package.json ./
 RUN pnpm install
@@ -41,7 +41,7 @@ RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
 # Enable pnpm
-RUN corepack enable pnpm
+RUN corepack enable pnpm && corepack prepare pnpm@10.30.3 --activate
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
