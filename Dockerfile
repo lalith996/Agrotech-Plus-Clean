@@ -3,12 +3,13 @@ FROM node:20-alpine AS base
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable pnpm && corepack prepare pnpm@10.30.3 --activate
-RUN pnpm install --frozen-lockfile
+
+# The repo actually has a package-lock.json! We will use npm ci.
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
-RUN pnpm run build
+RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
@@ -27,5 +28,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-RUN corepack enable pnpm
-CMD ["pnpm", "start"]
+CMD ["npm", "start"]
