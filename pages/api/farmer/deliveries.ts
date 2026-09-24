@@ -39,22 +39,23 @@ export default async function handler(
       })
 
       // Mock product requirements for each delivery
-      // Optimization: Fetch farmer's products once instead of in a loop to fix N+1 query
-      const farmerProducts = await prisma.product.findMany({
-        where: {
-          farmerId: farmer.id,
-          isActive: true
-        },
-        take: 3 // Simulate 3 products per delivery
-      });
+      const deliveriesWithProducts = await Promise.all(
+        deliveries.map(async (delivery) => {
+          // Get farmer's products to simulate requirements
+          const products = await prisma.product.findMany({
+            where: {
+              farmerId: farmer.id,
+              isActive: true
+            },
+            take: 3 // Simulate 3 products per delivery
+          })
 
-      const deliveriesWithProducts = deliveries.map((delivery) => {
           return {
             id: delivery.id,
             deliveryDate: delivery.deliveryDate.toISOString(),
             status: delivery.status,
             notes: delivery.notes,
-            products: farmerProducts.map(product => ({
+            products: products.map(product => ({
               id: product.id,
               name: product.name,
               requiredQuantity: Math.floor(Math.random() * 20) + 5, // Mock quantity
@@ -63,6 +64,7 @@ export default async function handler(
             }))
           }
         })
+      )
 
       res.status(200).json({ deliveries: deliveriesWithProducts })
     } catch (error) {
