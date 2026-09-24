@@ -43,7 +43,7 @@ export default async function handler(
         deliveries.map(async (delivery) => {
           // Get farmer's products to simulate requirements
           const products = await prisma.product.findMany({
-            where: { 
+            where: {
               farmerId: farmer.id,
               isActive: true
             },
