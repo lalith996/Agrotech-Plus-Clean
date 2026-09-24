@@ -1,18 +1,17 @@
 FROM node:18-alpine AS base
-RUN corepack enable pnpm
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json ./
-RUN pnpm install
+RUN npm i -g pnpm && pnpm install
 
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm dlx prisma generate
-RUN pnpm build
+RUN npm i -g pnpm && pnpm dlx prisma generate
+RUN npm i -g pnpm && pnpm build
 
 FROM base AS runner
 WORKDIR /app
