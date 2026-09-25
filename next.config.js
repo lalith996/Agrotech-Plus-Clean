@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ['@elastic/elasticsearch', 'stripe'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'localhost' },
