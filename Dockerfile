@@ -7,7 +7,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable pnpm
+RUN npm install -g pnpm
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* ./
@@ -19,7 +19,7 @@ FROM base AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable pnpm
+RUN npm install -g pnpm
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -37,7 +37,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Install pnpm
-RUN corepack enable pnpm
+RUN npm install -g pnpm
 
 COPY --from=builder /app/public ./public
 
