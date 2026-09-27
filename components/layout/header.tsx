@@ -145,7 +145,7 @@ export function Header() {
                   }, 150)
                 }}
               >
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none" aria-haspopup="true" aria-expanded={showShopDropdown}>
                   <span>Shop</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
@@ -193,7 +193,7 @@ export function Header() {
                   }, 150)
                 }}
               >
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-[#00B207] transition-colors font-medium cursor-pointer user-select-none" aria-haspopup="true" aria-expanded={showPagesDropdown}>
                   <span>Pages</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
