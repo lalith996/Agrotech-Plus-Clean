@@ -25,6 +25,11 @@ export default function proxy(request: NextRequest) {
     response.headers.set('X-Content-Type-Options', 'nosniff')
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     
+    // Enforce HTTPS
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+    // Basic protection against XSS attacks
+    response.headers.set('X-XSS-Protection', '1; mode=block')
+
     return response
     
   } catch (error) {
