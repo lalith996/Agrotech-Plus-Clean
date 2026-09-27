@@ -22,6 +22,7 @@ COPY . .
 # Enable pnpm
 RUN corepack enable pnpm
 
+RUN npx prisma generate
 RUN pnpm build
 
 # Production image, copy all the files and run next
