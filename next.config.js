@@ -9,6 +9,7 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
+  serverExternalPackages: ['@elastic/elasticsearch', 'stripe', 'sharp']
 };
 
 module.exports = nextConfig;

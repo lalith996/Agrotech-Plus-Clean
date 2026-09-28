@@ -1,3 +1,0 @@
-## 2025-10-29 - [Added Dockerfile and resolved missing dependencies]
-**Learning:** In Next.js Turbopack, dependencies like `sharp`, `stripe` and `@elastic/elasticsearch` used dynamically or in server files might cause build errors (Module not found) if they are completely missing from package.json rather than just needing externalization. In a containerized build, installing them normally (or configuring them appropriately) and copying `package.json` before running build is essential.
-**Action:** When seeing Turbopack build failures for missing modules in CI, confirm if the package is completely uninstalled, and install it or address it properly inside the Dockerfile via `package.json` or the correct package manager.
