@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/stores/cart-store'
 import { Button } from '@/components/ui/button'
@@ -33,9 +33,59 @@ interface ProductListProps {
   onOpenQuickView?: (product: Product) => void
 }
 
+// ⚡ Bolt: Added React.memo to ProductItem to prevent unnecessary re-renders
+const ProductItem = React.memo(({
+  product,
+  handleClick,
+  handleAdd,
+  onOpenQuickView
+}: {
+  product: Product,
+  handleClick: (id: string) => void,
+  handleAdd: (product: Product) => void,
+  onOpenQuickView?: (product: Product) => void
+}) => {
+  return (
+    <div className="border rounded-md p-4 cursor-pointer" onClick={() => handleClick(product.id)}>
+      <div className="font-semibold">{product.name}</div>
+      <div>${product.price}</div>
+      <div>{`${product.quantity} ${product.unit} available`}</div>
+      <div className="flex items-center gap-2">
+        <span>{product.rating}</span>
+        <span>({product.numReviews})</span>
+      </div>
+      <div className="mt-3 flex gap-2">
+        <Button
+          onClick={(e) => { e.stopPropagation(); handleAdd(product) }}
+          aria-label={`Add ${product.name} to cart`}
+          disabled={!product.isActive}
+          className="rounded-full bg-[#00B207] hover:bg-[#00B207]/90 text-white"
+          size="sm"
+        >
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Add to Cart
+        </Button>
+        <button onClick={(e) => { e.stopPropagation(); onOpenQuickView?.(product) }} aria-label={`Quick view for ${product.name}`}>
+          Quick View
+        </button>
+      </div>
+    </div>
+  )
+})
+ProductItem.displayName = 'ProductItem'
+
 export function ProductList({ products, isLoading, error, onOpenQuickView }: ProductListProps) {
   const router = useRouter()
   const { addToCart } = useCart()
+
+  const handleClick = useCallback((id: string) => {
+    router.push(`/products/${id}`)
+  }, [router])
+
+  const handleAdd = useCallback((product: Product) => {
+    addToCart(product, 1)
+    toast.success(`${product.name} added to cart!`)
+  }, [addToCart])
 
   if (isLoading) {
     return (
@@ -55,43 +105,16 @@ export function ProductList({ products, isLoading, error, onOpenQuickView }: Pro
     return <div>No products found</div>
   }
 
-  const handleClick = (id: string) => {
-    router.push(`/products/${id}`)
-  }
-
-  const handleAdd = (product: Product) => {
-    addToCart(product, 1)
-    toast.success(`${product.name} added to cart!`)
-  }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {products.map((product) => (
-        <div key={product.id} className="border rounded-md p-4 cursor-pointer" onClick={() => handleClick(product.id)}>
-          <div className="font-semibold">{product.name}</div>
-          <div>${product.price}</div>
-          <div>{`${product.quantity} ${product.unit} available`}</div>
-          <div className="flex items-center gap-2">
-            <span>{product.rating}</span>
-            <span>({product.numReviews})</span>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button
-              onClick={(e) => { e.stopPropagation(); handleAdd(product) }}
-              aria-label={`Add ${product.name} to cart`}
-              disabled={!product.isActive}
-              className="rounded-full bg-[#00B207] hover:bg-[#00B207]/90 text-white"
-              size="sm"
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Add to Cart
-            </Button>
-            <button onClick={(e) => { e.stopPropagation(); onOpenQuickView?.(product) }} aria-label={`Quick view for ${product.name}`}>
-              Quick View
-            </button>
-          </div>
-          {/* Remove duplicate disabled button; main Add to Cart now respects isActive */}
-        </div>
+        <ProductItem
+          key={product.id}
+          product={product}
+          handleClick={handleClick}
+          handleAdd={handleAdd}
+          onOpenQuickView={onOpenQuickView}
+        />
       ))}
     </div>
   )

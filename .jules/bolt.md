@@ -1,0 +1,3 @@
+## 2025-10-29 - [Added React.memo to ProductItem]
+**Learning:** In React components like `ProductList`, rendering a list of items directly in the `map` function can cause unnecessary re-renders of all items when the parent component updates or when callbacks are recreated. By extracting the mapped JSX into a separate `ProductItem` component and wrapping it with `React.memo`, we prevent re-renders for items whose props have not changed. This is especially effective when combined with `useCallback` for event handlers like `handleClick` and `handleAdd`, which keeps their references stable.
+**Action:** Always extract list items into their own components and memoize them with `React.memo` when they are rendered inside a `map` and rely on callbacks from the parent component.
