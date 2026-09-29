@@ -1,6 +1,5 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
-import DOMPurify from "isomorphic-dompurify"
 import { useRouter } from "next/router"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
@@ -239,7 +238,7 @@ export default function BlogArticlePage() {
               {/* Article Content */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
               {/* Author Bio */}
