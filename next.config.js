@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'localhost' },
@@ -8,6 +9,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
     formats: ['image/webp', 'image/avif'],
+  },
+  experimental: {
+    serverExternalPackages: ['@prisma/client', 'bcrypt'],
   },
 };
 
