@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'localhost' },
@@ -9,6 +10,7 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
+  serverExternalPackages: ['@elastic/elasticsearch', 'stripe', 'sharp'],
 };
 
 module.exports = nextConfig;
