@@ -11,6 +11,9 @@ COPY prisma ./prisma/
 RUN pnpm config set ignore-scripts true && pnpm install
 RUN npx prisma generate
 
+# Install required modules that were ignored due to ignore-scripts
+RUN pnpm add sharp @elastic/elasticsearch stripe
+
 COPY . .
 
 # Environment setup
