@@ -9,6 +9,7 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
+  serverExternalPackages: ['sharp'],
 };
 
 module.exports = nextConfig;
