@@ -1,20 +1,33 @@
-import { motion } from "framer-motion"
-import Link from "next/link"
-import { useRouter } from "next/router"
-import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar, User, Clock, Share2, Facebook, Twitter, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react"
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Calendar,
+  User,
+  Clock,
+  Share2,
+  Facebook,
+  Twitter,
+  ArrowLeft,
+  ChevronRight,
+  MessageCircle,
+} from "lucide-react";
+import DOMPurify from "isomorphic-dompurify";
 
 const blogPostsData: Record<string, any> = {
   "organic-farming-benefits": {
     title: "10 Amazing Benefits of Organic Farming",
-    excerpt: "Discover how organic farming practices are revolutionizing agriculture and creating a sustainable future for our planet.",
+    excerpt:
+      "Discover how organic farming practices are revolutionizing agriculture and creating a sustainable future for our planet.",
     category: "Farming Tips",
     author: "Dr. Priya Sharma",
     date: "2025-10-05",
     readTime: "5 min read",
-    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=600&fit=crop",
     content: `
       <p>Organic farming has emerged as a powerful solution to many of the environmental and health challenges we face today. As consumers become more conscious about what they eat and how it's produced, organic farming continues to gain momentum worldwide.</p>
 
@@ -57,7 +70,7 @@ const blogPostsData: Record<string, any> = {
       <p>Whether you're a farmer considering organic methods or a consumer choosing organic products, every step toward organic farming contributes to a healthier planet. At AgroTrack+, we're committed to supporting organic farmers and making fresh organic produce accessible to everyone.</p>
 
       <p>The future of farming is organic, and the time to embrace it is now. Together, we can create a sustainable food system that nourishes both people and the planet.</p>
-    `
+    `,
   },
   "seasonal-vegetables-guide": {
     title: "Seasonal Vegetables Guide for October",
@@ -65,8 +78,10 @@ const blogPostsData: Record<string, any> = {
     author: "Rajesh Kumar",
     date: "2025-10-03",
     readTime: "4 min read",
-    image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=1200&h=600&fit=crop",
-    content: "<p>October brings a wonderful variety of fresh vegetables perfect for autumn recipes...</p>"
+    image:
+      "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=1200&h=600&fit=crop",
+    content:
+      "<p>October brings a wonderful variety of fresh vegetables perfect for autumn recipes...</p>",
   },
   "organic-detox-smoothie-recipes": {
     title: "5 Organic Detox Smoothie Recipes",
@@ -74,44 +89,52 @@ const blogPostsData: Record<string, any> = {
     author: "Chef Anjali Desai",
     date: "2025-10-01",
     readTime: "6 min read",
-    image: "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=1200&h=600&fit=crop",
-    content: "<p>Start your day with these refreshing organic smoothies...</p>"
-  }
-}
+    image:
+      "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=1200&h=600&fit=crop",
+    content: "<p>Start your day with these refreshing organic smoothies...</p>",
+  },
+};
 
 const relatedPosts = [
   {
     slug: "seasonal-vegetables-guide",
     title: "Seasonal Vegetables Guide for October",
-    image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=300&fit=crop",
-    category: "Farming Tips"
+    image:
+      "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=300&fit=crop",
+    category: "Farming Tips",
   },
   {
     slug: "sustainable-farming-practices",
     title: "Sustainable Farming Practices That Make a Difference",
-    image: "https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400&h=300&fit=crop",
-    category: "Sustainability"
+    image:
+      "https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400&h=300&fit=crop",
+    category: "Sustainability",
   },
   {
     slug: "health-benefits-organic-food",
     title: "The Science Behind Organic Food Health Benefits",
-    image: "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&h=300&fit=crop",
-    category: "Health"
-  }
-]
+    image:
+      "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&h=300&fit=crop",
+    category: "Health",
+  },
+];
 
 export default function BlogArticlePage() {
-  const router = useRouter()
-  const { slug } = router.query
-  
-  const post = slug ? blogPostsData[slug as string] : null
+  const router = useRouter();
+  const { slug } = router.query;
+
+  const post = slug ? blogPostsData[slug as string] : null;
 
   if (!post) {
     return (
       <>
         <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Article Not Found</h1>
-          <p className="text-gray-600 mb-8">The article you're looking for doesn't exist.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Article Not Found
+          </h1>
+          <p className="text-gray-600 mb-8">
+            The article you're looking for doesn't exist.
+          </p>
           <Link href="/blog">
             <Button className="bg-[#00B207] hover:bg-green-700">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -120,21 +143,21 @@ export default function BlogArticlePage() {
           </Link>
         </div>
       </>
-    )
+    );
   }
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
-  const shareTitle = post.title
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareTitle = post.title;
 
   const handleShare = (platform: string) => {
     const urls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
       twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`
-    }
-    
-    window.open(urls[platform], '_blank', 'width=600,height=400')
-  }
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTitle + " " + shareUrl)}`,
+    };
+
+    window.open(urls[platform], "_blank", "width=600,height=400");
+  };
 
   return (
     <>
@@ -142,7 +165,10 @@ export default function BlogArticlePage() {
         {/* Back Button */}
         <div className="container mx-auto px-4 pt-8">
           <Link href="/blog">
-            <Button variant="ghost" className="hover:bg-green-50 hover:text-[#00B207]">
+            <Button
+              variant="ghost"
+              className="hover:bg-green-50 hover:text-[#00B207]"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Blog
             </Button>
@@ -178,7 +204,13 @@ export default function BlogArticlePage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-5 h-5" />
-                  <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span>
+                    {new Date(post.date).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-5 h-5" />
@@ -202,13 +234,15 @@ export default function BlogArticlePage() {
               <div className="flex items-center justify-between py-6 border-y border-gray-200 mb-12">
                 <div className="flex items-center space-x-3">
                   <Share2 className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-600 font-medium">Share this article:</span>
+                  <span className="text-gray-600 font-medium">
+                    Share this article:
+                  </span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleShare('facebook')}
+                    onClick={() => handleShare("facebook")}
                     className="rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600"
                     aria-label="Share on Facebook"
                   >
@@ -217,7 +251,7 @@ export default function BlogArticlePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleShare('twitter')}
+                    onClick={() => handleShare("twitter")}
                     className="rounded-full hover:bg-sky-50 hover:text-sky-600 hover:border-sky-600"
                     aria-label="Share on Twitter"
                   >
@@ -226,7 +260,7 @@ export default function BlogArticlePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleShare('whatsapp')}
+                    onClick={() => handleShare("whatsapp")}
                     className="rounded-full hover:bg-green-50 hover:text-green-600 hover:border-green-600"
                     aria-label="Share on WhatsApp"
                   >
@@ -236,9 +270,11 @@ export default function BlogArticlePage() {
               </div>
 
               {/* Article Content */}
-              <div 
+              <div
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(post.content),
+                }}
               />
 
               {/* Author Bio */}
@@ -252,9 +288,11 @@ export default function BlogArticlePage() {
                       About {post.author}
                     </h3>
                     <p className="text-gray-600">
-                      {post.author} is a passionate advocate for sustainable agriculture and organic farming. 
-                      With years of experience in the field, they share valuable insights to help farmers and 
-                      consumers make informed decisions about organic produce.
+                      {post.author} is a passionate advocate for sustainable
+                      agriculture and organic farming. With years of experience
+                      in the field, they share valuable insights to help farmers
+                      and consumers make informed decisions about organic
+                      produce.
                     </p>
                   </div>
                 </div>
@@ -266,7 +304,9 @@ export default function BlogArticlePage() {
           <section className="bg-gray-50 py-16">
             <div className="container mx-auto px-4">
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-3xl font-bold text-gray-900 mb-8">Related Articles</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">
+                  Related Articles
+                </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {relatedPosts.map((relatedPost, index) => (
                     <motion.div
@@ -312,5 +352,5 @@ export default function BlogArticlePage() {
         </article>
       </div>
     </>
-  )
+  );
 }
