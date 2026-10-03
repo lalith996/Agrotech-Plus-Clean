@@ -55,17 +55,29 @@ async function getAcceptanceRatesPerDelivery(farmerId: string): Promise<number[]
   })
   if (!deliveries.length) return []
 
+  const deliveryIds = deliveries.map(d => d.id)
+
+  const qs = await prisma.qCResult.findMany({
+    where: { farmerDeliveryId: { in: deliveryIds } },
+    select: { farmerDeliveryId: true, expectedQuantity: true, acceptedQuantity: true },
+  })
+
+  const qsByDeliveryId = qs.reduce((acc, r) => {
+    if (!acc[r.farmerDeliveryId]) {
+      acc[r.farmerDeliveryId] = []
+    }
+    acc[r.farmerDeliveryId].push(r)
+    return acc
+  }, {} as Record<string, typeof qs>)
+
   const rates: number[] = []
   for (const d of deliveries) {
-    const qs = await prisma.qCResult.findMany({
-      where: { farmerDeliveryId: d.id },
-      select: { expectedQuantity: true, acceptedQuantity: true },
-    })
-    if (!qs.length) {
+    const deliveryQs = qsByDeliveryId[d.id]
+    if (!deliveryQs || !deliveryQs.length) {
       continue
     }
-    const expected = qs.reduce((acc, r) => acc + (r.expectedQuantity || 0), 0)
-    const accepted = qs.reduce((acc, r) => acc + (r.acceptedQuantity || 0), 0)
+    const expected = deliveryQs.reduce((acc, r) => acc + (r.expectedQuantity || 0), 0)
+    const accepted = deliveryQs.reduce((acc, r) => acc + (r.acceptedQuantity || 0), 0)
     const rate = expected > 0 ? accepted / expected : 0
     rates.push(rate)
   }
