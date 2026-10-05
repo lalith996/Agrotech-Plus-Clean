@@ -81,6 +81,7 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
                   size="icon"
                   onClick={onClose}
                   className="lg:hidden"
+                  aria-label="Close menu"
                 >
                   <Bars3CenterLeftIcon className="h-5 w-5" />
                 </Button>
