@@ -77,6 +77,7 @@ export default function Products() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  // Optimization: Debounce search term to prevent excessive API calls while typing
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
