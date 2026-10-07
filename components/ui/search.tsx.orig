@@ -22,14 +22,14 @@ interface SearchProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
-  ({ 
-    className, 
-    onSearch, 
-    debounceMs = 300, 
+  ({
+    className,
+    onSearch,
+    debounceMs = 300,
     showAutoComplete = false,
     onSuggestionSelect,
     minCharsForSuggestions = 2,
-    ...props 
+    ...props
   }, ref) => {
     const [value, setValue] = React.useState(props.value || '')
     const [suggestions, setSuggestions] = React.useState<Suggestion[]>([])
@@ -50,7 +50,7 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
           onSearch(value as string)
         }, debounceMs)
       }
-      
+
       return () => {
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current)
@@ -76,7 +76,7 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
           const response = await fetch(
             `/api/search/suggestions?q=${encodeURIComponent(value as string)}&limit=8`
           )
-          
+
           if (response.ok) {
             const data = await response.json()
             if (data.success && data.suggestions) {
@@ -121,7 +121,7 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault()
-          setSelectedIndex(prev => 
+          setSelectedIndex(prev =>
             prev < suggestions.length - 1 ? prev + 1 : prev
           )
           break
@@ -146,11 +146,11 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
       setValue(suggestion.text)
       setShowSuggestions(false)
       setSelectedIndex(-1)
-      
+
       if (onSuggestionSelect) {
         onSuggestionSelect(suggestion)
       }
-      
+
       if (onSearch) {
         onSearch(suggestion.text)
       }
@@ -161,7 +161,7 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
       setSuggestions([])
       setShowSuggestions(false)
       setSelectedIndex(-1)
-      
+
       if (onSearch) {
         onSearch('')
       }
@@ -182,8 +182,8 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
 
     return (
       <div ref={wrapperRef} className="relative w-full">
-        <MagnifyingGlassIcon 
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" 
+        <MagnifyingGlassIcon
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10"
           aria-hidden="true"
         />
         <Input
@@ -198,14 +198,14 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
               setShowSuggestions(true)
             }
           }}
-          role="combobox"
+          role="searchbox"
           aria-label="Search"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
           aria-expanded={showSuggestions}
           {...props}
         />
-        
+
         {/* Clear button */}
         {value && (
           <button
