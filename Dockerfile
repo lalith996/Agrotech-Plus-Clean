@@ -4,8 +4,8 @@ RUN corepack enable pnpm
 
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --config.verify-deps-before-run=false || true
+COPY package.json ./
+RUN pnpm install --config.verify-deps-before-run=false || true
 RUN if [ ! -d "node_modules" ]; then pnpm install --config.verify-deps-before-run=false; fi
 
 FROM base AS builder
