@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+.kiro
+.vscode
+__mocks__
+__tests__
+npm-debug.log
