@@ -141,8 +141,8 @@ export class XSSProtection {
   static getCSPHeader(): string {
     return [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: unsafe-* should be removed in production
-      "style-src 'self' 'unsafe-inline'",
+      "script-src 'self'", // Note: unsafe-* should be removed in production
+      "style-src 'self'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
       "connect-src 'self'",
