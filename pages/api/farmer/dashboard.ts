@@ -153,7 +153,7 @@ export default async function handler(
           })
 
           const avgDailyDemand = (historicalOrders._sum.quantity || 0) / 30
-          
+
           return Array.from({ length: 7 }, (_, i) => ({
             productId: product.id,
             productName: product.name,
