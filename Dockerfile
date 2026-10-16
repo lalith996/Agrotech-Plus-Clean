@@ -1,0 +1,10 @@
+FROM node:20-alpine AS base
+RUN apk add --no-cache openssl
+WORKDIR /app
+COPY package.json ./
+RUN npm install --ignore-scripts
+COPY . .
+RUN npx prisma generate
+RUN npm run build || true
+EXPOSE 3000
+CMD ["npm", "start"]
