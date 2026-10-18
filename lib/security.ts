@@ -160,7 +160,7 @@ export class XSSProtection {
 
 // CSRF Protection
 export class CSRFProtection {
-  private static readonly SECRET_KEY = process.env.CSRF_SECRET || 'default-csrf-secret'
+  private static get SECRET_KEY() { if (!process.env.CSRF_SECRET) throw new Error('CSRF_SECRET must be set'); return process.env.CSRF_SECRET; }
 
   // Generate CSRF token
   static generateToken(sessionId: string): string {
