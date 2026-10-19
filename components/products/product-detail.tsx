@@ -78,8 +78,22 @@ export function ProductDetail({ product, isLoading, error }: ProductDetailProps)
       <img src={currentImage} alt={product.name} />
 
       <div>
-        <button data-testid="gallery-prev" onClick={prevImage}>Prev</button>
-        <button data-testid="gallery-next" onClick={nextImage}>Next</button>
+        <button
+          data-testid="gallery-prev"
+          onClick={prevImage}
+          aria-label="Previous image"
+          disabled={gallery.length === 0 || currentIndex === 0}
+        >
+          Prev
+        </button>
+        <button
+          data-testid="gallery-next"
+          onClick={nextImage}
+          aria-label="Next image"
+          disabled={gallery.length === 0 || currentIndex === gallery.length - 1}
+        >
+          Next
+        </button>
       </div>
 
       <div>
