@@ -239,6 +239,7 @@ export const Search = React.forwardRef<HTMLInputElement, SearchProps>(
                 role="option"
                 aria-selected={index === selectedIndex}
                 onClick={() => handleSuggestionClick(suggestion)}
+                aria-label={`Select suggestion ${suggestion.text}`}
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={cn(
                   "w-full px-4 py-2 text-left hover:bg-accent transition-colors flex items-center gap-3",
