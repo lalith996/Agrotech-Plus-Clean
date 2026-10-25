@@ -1,0 +1,3 @@
+## 2023-10-25 - [Farmer Performance N+1 Optimization]
+**Learning:** The farmer performance computation used sequential `await` inside loops, causing N+1 queries. `Promise.all` can effectively parallelize independent database queries for different metrics within the same function and for different farmers across the list endpoint, dramatically speeding up API response times without architectural changes.
+**Action:** Use `Promise.all` to fetch unrelated metrics and process list endpoints concurrently when the number of concurrent tasks is manageable.
