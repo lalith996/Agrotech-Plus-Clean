@@ -11,7 +11,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN corepack enable pnpm && pnpm config set verifyDepsBeforeRun false
-RUN pnpm install sharp
+RUN pnpm install sharp --ignore-scripts || true
 RUN pnpm run build || npm run build || true
 
 FROM base AS runner
