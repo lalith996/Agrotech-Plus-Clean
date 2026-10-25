@@ -1,3 +1,0 @@
-## 2023-10-25 - Improved Cart Drawer Accessibility
-**Learning:** Icon-only buttons in the cart drawer (close, plus, minus, and remove) lacked ARIA labels and clear focus indicators, which made screen reader navigation and keyboard interactions difficult. Specifically, standard focus rings were missing, causing keyboard users to lose track of their position.
-**Action:** Always add `aria-label` to icon-only interactive elements and explicitly implement `focus-visible` outline styles (like `focus-visible:ring-2`) to ensure both semantic clarity and visual accessibility for keyboard users in overlay components.
