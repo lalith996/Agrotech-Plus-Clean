@@ -168,12 +168,22 @@ function buildFeatureVector(b: MetricBreakdown): number[] {
 }
 
 async function computeMetricsForFarmer(farmerId: string): Promise<{ breakdown: MetricBreakdown; capacity: number; qualityVariance: number; trend: 'improving'|'stable'|'declining' }> {
-  // QC-based metrics
-  const qc = await prisma.qCResult.findMany({
-    where: { farmerId },
-    select: { expectedQuantity: true, acceptedQuantity: true, rejectedQuantity: true, timestamp: true, farmerDeliveryId: true },
-    orderBy: { timestamp: 'asc' },
-  })
+  // Fetch all metrics concurrently
+  const [qc, deliveries, certs, orders] = await Promise.all([
+    prisma.qCResult.findMany({
+      where: { farmerId },
+      select: { expectedQuantity: true, acceptedQuantity: true, rejectedQuantity: true, timestamp: true, farmerDeliveryId: true },
+      orderBy: { timestamp: 'asc' },
+    }),
+    prisma.farmerDelivery.findMany({ where: { farmerId }, select: { status: true } }),
+    prisma.certification.findMany({ where: { farmerId }, select: { expiryDate: true } }),
+    prisma.order.findMany({
+      where: {
+        items: { some: { product: { farmerId } } },
+      },
+      include: { items: { include: { product: { select: { farmerId: true } } } }, customer: { select: { id: true } } },
+    })
+  ])
 
   let totalExpected = 0
   let totalAccepted = 0
@@ -197,7 +207,6 @@ async function computeMetricsForFarmer(farmerId: string): Promise<{ breakdown: M
   const variance = acceptanceRates.length ? acceptanceRates.reduce((acc, r) => acc + Math.pow(r - avgAcceptance, 2), 0) / acceptanceRates.length : 0
 
   // Delivery reliability from FarmerDelivery statuses
-  const deliveries = await prisma.farmerDelivery.findMany({ where: { farmerId }, select: { status: true } })
   const totalDeliveries = deliveries.length
   const deliveredCount = deliveries.filter(d => d.status?.toLowerCase() === 'delivered').length
   const deliveryReliability = totalDeliveries > 0 ? deliveredCount / totalDeliveries : 0.5 // neutral fallback
@@ -206,18 +215,11 @@ async function computeMetricsForFarmer(farmerId: string): Promise<{ breakdown: M
   const volumeFulfillment = totalExpected > 0 ? totalAccepted / totalExpected : (totalDeliveries > 0 ? 0.5 : 0)
 
   // Sustainability (based on certifications; valid/non-expired -> higher score)
-  const certs = await prisma.certification.findMany({ where: { farmerId }, select: { expiryDate: true } })
   const now = new Date()
   const validCerts = certs.filter(c => !c.expiryDate || c.expiryDate > now).length
   const sustainabilityRaw = validCerts > 0 ? 0.8 + Math.min(0.2, validCerts * 0.05) : 0.4 // 0-1 scale
 
   // Customer feedback proxy: repeat purchase rate for products from this farmer
-  const orders = await prisma.order.findMany({
-    where: {
-      items: { some: { product: { farmerId } } },
-    },
-    include: { items: { include: { product: { select: { farmerId: true } } } }, customer: { select: { id: true } } },
-  })
   const purchasesByCustomer = new Map<string, number>()
   for (const o of orders) {
     const containsFarmerProduct = o.items.some(i => i.product.farmerId === farmerId)
@@ -269,10 +271,17 @@ async function computePerformanceForFarmer(farmerId: string): Promise<FarmerPerf
 async function computeAllFarmers(topN?: number, tierFilter?: string, segmentation?: SegmentationMode): Promise<{ results: FarmerPerformance[] }> {
   const farmers = await prisma.farmer.findMany({ select: { id: true } })
   const results: FarmerPerformance[] = []
-  for (const f of farmers) {
-    const perf = await computePerformanceForFarmer(f.id)
-    results.push(perf)
+
+  // Process in chunks to prevent connection pool exhaustion
+  const CHUNK_SIZE = 10;
+  for (let i = 0; i < farmers.length; i += CHUNK_SIZE) {
+    const chunk = farmers.slice(i, i + CHUNK_SIZE);
+    const chunkResults = await Promise.all(
+      chunk.map(f => computePerformanceForFarmer(f.id))
+    );
+    results.push(...chunkResults);
   }
+
   // Rank by score
   results.sort((a, b) => b.performance_score - a.performance_score)
   results.forEach((r, idx) => { r.rank = idx + 1 })
