@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/router"
+import DOMPurify from "isomorphic-dompurify"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -236,9 +237,10 @@ export default function BlogArticlePage() {
               </div>
 
               {/* Article Content */}
+              {/* Sanitize HTML to prevent XSS */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
               />
 
               {/* Author Bio */}
