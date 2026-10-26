@@ -31,35 +31,51 @@ export default async function handler(
       })
 
       // Check availability for each slot
-      const slotsWithAvailability = await Promise.all(
-        slots.map(async (slot) => {
-          const existingRoutes = await prisma.deliveryRoute.count({
-            where: {
-              slotId: slot.id,
-              date: {
-                gte: new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()),
-                lt: new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1),
-              }
-            }
-          })
+      const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1);
 
-          const ordersInSlot = await prisma.order.count({
-            where: {
-              deliveryDate: {
-                gte: new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()),
-                lt: new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1),
-              },
-              deliverySlot: `${slot.startTime}-${slot.endTime}`,
-            }
-          })
-
-          return {
-            ...slot,
-            availableCapacity: slot.maxOrders - ordersInSlot,
-            isAvailable: ordersInSlot < slot.maxOrders,
+      // Optimize N+1 query by grouping queries
+      const [routesInSlots, ordersInSlots] = await Promise.all([
+        prisma.deliveryRoute.groupBy({
+          by: ['slotId'],
+          where: {
+            date: {
+              gte: startDate,
+              lt: endDate,
+            },
+            slotId: { in: slots.map(s => s.id) }
+          },
+          _count: {
+            id: true
+          }
+        }),
+        prisma.order.groupBy({
+          by: ['deliverySlot'],
+          where: {
+            deliveryDate: {
+              gte: startDate,
+              lt: endDate,
+            },
+            deliverySlot: { in: slots.map(s => `${s.startTime}-${s.endTime}`) }
+          },
+          _count: {
+            id: true
           }
         })
-      )
+      ]);
+
+      const ordersMap = new Map(ordersInSlots.map(o => [o.deliverySlot, o._count.id]));
+
+      const slotsWithAvailability = slots.map(slot => {
+        const slotKey = `${slot.startTime}-${slot.endTime}`;
+        const ordersInSlot = ordersMap.get(slotKey) || 0;
+
+        return {
+          ...slot,
+          availableCapacity: slot.maxOrders - ordersInSlot,
+          isAvailable: ordersInSlot < slot.maxOrders,
+        };
+      });
 
       res.status(200).json({ slots: slotsWithAvailability })
     } catch (error) {
