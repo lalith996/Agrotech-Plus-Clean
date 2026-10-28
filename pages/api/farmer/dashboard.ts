@@ -139,30 +139,38 @@ export default async function handler(
       })
 
       // Generate simple demand forecast based on historical averages (placeholder)
-      const demandForecast = await Promise.all(
-        products.map(async (product) => {
-          const historicalOrders = await prisma.orderItem.aggregate({
-            where: {
-              productId: product.id,
-              order: {
-                createdAt: { gte: startOfMonth },
-                status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
-              }
-            },
-            _sum: { quantity: true }
-          })
+      // ⚡ Bolt: Optimize N+1 query by batching historical orders fetch
+      const allHistoricalOrders = await prisma.orderItem.findMany({
+        where: {
+          productId: { in: products.map((p) => p.id) },
+          order: {
+            createdAt: { gte: startOfMonth },
+            status: { in: ["DELIVERED", "CONFIRMED", "PICKED", "ORDER_IN_TRANSIT"] }
+          }
+        },
+        select: {
+          productId: true,
+          quantity: true,
+        }
+      })
 
-          const avgDailyDemand = (historicalOrders._sum.quantity || 0) / 30
-          
-          return Array.from({ length: 7 }, (_, i) => ({
-            productId: product.id,
-            productName: product.name,
-            quantity: Math.round(avgDailyDemand * (1 + (Math.random() * 0.2 - 0.1))), // ±10% variation
-            date: new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            confidence: 0.75 // Placeholder confidence
-          }))
-        })
-      )
+      const productOrdersMap = allHistoricalOrders.reduce((acc, item) => {
+        acc[item.productId] = (acc[item.productId] || 0) + item.quantity
+        return acc
+      }, {} as Record<string, number>)
+
+      const demandForecast = products.map((product) => {
+        const totalQuantity = productOrdersMap[product.id] || 0
+        const avgDailyDemand = totalQuantity / 30
+
+        return Array.from({ length: 7 }, (_, i) => ({
+          productId: product.id,
+          productName: product.name,
+          quantity: Math.round(avgDailyDemand * (1 + (Math.random() * 0.2 - 0.1))), // ±10% variation
+          date: new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          confidence: 0.75 // Placeholder confidence
+        }))
+      })
 
       // Generate alerts
       const alerts = []

@@ -1,0 +1,3 @@
+## 2024-05-24 - Prisma findMany batching over groupBy
+**Learning:** When resolving N+1 queries in Prisma, do not use the groupBy API if the query requires filtering on or selecting fields from related models, as Prisma's groupBy does not support relational fields. However, for simple aggregations on a single model (like orderItem), groupBy can be used efficiently to batch counts/sums, avoiding unbounded Promise.all over large arrays.
+**Action:** Use prisma.groupBy when simple aggregation is needed, or prisma.findMany with an IN clause followed by in-memory aggregation if relations are involved.
