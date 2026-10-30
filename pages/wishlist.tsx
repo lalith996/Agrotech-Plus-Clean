@@ -160,6 +160,7 @@ export default function WishlistPage() {
                   <button
                     onClick={() => handleRemoveFromWishlist(item.productId, item.name)}
                     className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
+                    aria-label={`Remove ${item.name} from wishlist`}
                   >
                     <Heart className="w-5 h-5 text-red-500 fill-red-500" />
                   </button>
