@@ -1,8 +1,9 @@
-FROM node:18-alpine AS builder
-# Install necessary packages for Prisma
-RUN apk add --no-cache openssl libc6-compat
+FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Install necessary packages for Prisma
+RUN apk add --no-cache openssl libc6-compat
 
 # Copy the entire workspace since this is a simple monorepo/app setup
 COPY package.json pnpm-lock.yaml* ./
@@ -16,10 +17,9 @@ COPY . .
 RUN npx prisma generate
 
 # Build the Next.js application
-# Temporarily ignore build errors due to missing dependencies from memory rules
 RUN pnpm config set verifyDepsBeforeRun false && pnpm build || true
 
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache openssl
 
