@@ -315,6 +315,7 @@ export default function ProductDetail() {
                   <button
                     onClick={() => setIsFullscreenGallery(true)}
                     className="absolute top-4 right-4 p-2 bg-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="View fullscreen gallery"
                   >
                     <Maximize2 className="w-5 h-5" />
                   </button>
@@ -775,6 +776,7 @@ export default function ProductDetail() {
           <button
             onClick={() => setIsFullscreenGallery(false)}
             className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+            aria-label="Close fullscreen gallery"
           >
             <X className="w-6 h-6 text-white" />
           </button>
