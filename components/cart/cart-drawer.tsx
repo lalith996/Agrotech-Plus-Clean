@@ -1,48 +1,49 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { useCartStore } from "@/lib/stores/cart-store"
-import { Button } from "@/components/ui/button"
-import { X, ShoppingCart, Minus, Plus, Trash2 } from "lucide-react"
-import { toast } from "sonner"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useCartStore } from "@/lib/stores/cart-store";
+import { Button } from "@/components/ui/button";
+import { X, ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface CartDrawerProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { items, removeItem, updateQuantity, getTotal, getItemCount } = useCartStore()
+  const { items, removeItem, updateQuantity, getTotal, getItemCount } =
+    useCartStore();
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
-    if (newQuantity < 1) return
-    updateQuantity(productId, newQuantity)
-  }
+    if (newQuantity < 1) return;
+    updateQuantity(productId, newQuantity);
+  };
 
   const handleRemoveItem = (productId: string, productName: string) => {
-    removeItem(productId)
-    toast.success(`${productName} removed from cart`)
-  }
+    removeItem(productId);
+    toast.success(`${productName} removed from cart`);
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
-    }).format(price)
-  }
+    }).format(price);
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300"
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
       <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col">
         {/* Header */}
@@ -53,12 +54,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               Shopping Cart
               {items.length > 0 && (
                 <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({getItemCount()} {getItemCount() === 1 ? 'item' : 'items'})
+                  ({getItemCount()} {getItemCount() === 1 ? "item" : "items"})
                 </span>
               )}
             </h2>
           </div>
           <button
+            aria-label="Close cart"
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -73,11 +75,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <ShoppingCart className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Your cart is empty
+              </h3>
               <p className="text-sm text-gray-600 mb-6">
                 Add some fresh products to get started!
               </p>
-              <Button 
+              <Button
                 onClick={onClose}
                 asChild
                 className="rounded-full bg-[#00B207] hover:bg-green-700"
@@ -88,8 +92,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className="flex space-x-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-[#00B207] transition-colors"
                 >
                   {/* Product Image */}
@@ -120,14 +124,24 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     )}
                     <p className="text-sm font-bold text-[#00B207] mt-1">
                       {formatPrice(item.price)}
-                      {item.unit && <span className="text-xs text-gray-500 font-normal ml-1">/{item.unit}</span>}
+                      {item.unit && (
+                        <span className="text-xs text-gray-500 font-normal ml-1">
+                          /{item.unit}
+                        </span>
+                      )}
                     </p>
-                    
+
                     {/* Quantity Controls */}
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center space-x-2 bg-gray-100 rounded-full p-1">
                         <button
-                          onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
+                          aria-label="Decrease quantity"
+                          onClick={() =>
+                            handleQuantityChange(
+                              item.productId,
+                              item.quantity - 1,
+                            )
+                          }
                           className="p-1 hover:bg-white rounded-full transition-colors"
                           disabled={item.quantity <= 1}
                         >
@@ -137,15 +151,24 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
+                          aria-label="Increase quantity"
+                          onClick={() =>
+                            handleQuantityChange(
+                              item.productId,
+                              item.quantity + 1,
+                            )
+                          }
                           className="p-1 hover:bg-white rounded-full transition-colors"
                         >
                           <Plus className="w-3 h-3 text-gray-600" />
                         </button>
                       </div>
-                      
+
                       <button
-                        onClick={() => handleRemoveItem(item.productId, item.name)}
+                        aria-label="Remove item"
+                        onClick={() =>
+                          handleRemoveItem(item.productId, item.name)
+                        }
                         className="p-1 hover:bg-red-50 rounded-full transition-colors"
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
@@ -162,21 +185,23 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         {items.length > 0 && (
           <div className="border-t bg-white p-4 space-y-3">
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium text-gray-700">Subtotal:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Subtotal:
+              </span>
               <span className="text-xl font-bold text-gray-900">
                 {formatPrice(getTotal())}
               </span>
             </div>
-            
+
             <div className="space-y-2">
-              <Button 
+              <Button
                 onClick={onClose}
                 asChild
                 className="w-full rounded-full bg-[#00B207] hover:bg-green-700 text-white"
               >
                 <Link href="/cart">View Cart</Link>
               </Button>
-              <Button 
+              <Button
                 onClick={onClose}
                 asChild
                 variant="outline"
@@ -189,5 +214,5 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         )}
       </div>
     </>
-  )
+  );
 }
