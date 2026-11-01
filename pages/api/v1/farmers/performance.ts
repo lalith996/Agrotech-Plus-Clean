@@ -269,9 +269,11 @@ async function computePerformanceForFarmer(farmerId: string): Promise<FarmerPerf
 async function computeAllFarmers(topN?: number, tierFilter?: string, segmentation?: SegmentationMode): Promise<{ results: FarmerPerformance[] }> {
   const farmers = await prisma.farmer.findMany({ select: { id: true } })
   const results: FarmerPerformance[] = []
-  for (const f of farmers) {
-    const perf = await computePerformanceForFarmer(f.id)
-    results.push(perf)
+  const chunkSize = 10
+  for (let i = 0; i < farmers.length; i += chunkSize) {
+    const chunk = farmers.slice(i, i + chunkSize)
+    const chunkResults = await Promise.all(chunk.map(f => computePerformanceForFarmer(f.id)))
+    results.push(...chunkResults)
   }
   // Rank by score
   results.sort((a, b) => b.performance_score - a.performance_score)
