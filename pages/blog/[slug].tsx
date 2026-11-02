@@ -239,7 +239,7 @@ export default function BlogArticlePage() {
               {/* Article Content */}
               <div 
                 className="prose prose-lg max-w-none mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                dangerouslySetInnerHTML={{ __html: typeof window !== 'undefined' ? DOMPurify.sanitize(post.content) : post.content }}
               />
 
               {/* Author Bio */}
