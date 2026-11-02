@@ -1,0 +1,3 @@
+## 2024-12-05 - Avoid Duplicate Database Queries inside Loops
+**Learning:** Found an N+1 query pattern where the exact same query (`prisma.product.findMany` filtering by `farmer.id`) was being executed inside a loop over deliveries using `Promise.all(deliveries.map(async ...))`. This resulted in identical database queries for every delivery, exhausting DB connections and increasing latency unnecessarily.
+**Action:** When data depends only on the parent entity (e.g., `farmerId`) rather than the item being iterated over (e.g., `deliveryId`), fetch the data once outside the loop and reuse it in memory.
