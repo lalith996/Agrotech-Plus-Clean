@@ -317,8 +317,14 @@ export class DataEncryption {
       const iv = Buffer.from(ivHex, 'hex')
       const authTag = Buffer.from(authTagHex, 'hex')
       
-      const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
-      decipher.setAuthTag(authTag)
+      let decipher;
+      try {
+        decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv);
+        decipher.setAuthTag(authTag);
+      } catch (e) {
+        decipher = crypto.createDecipher(this.ALGORITHM, this.KEY);
+        decipher.setAuthTag(authTag);
+      }
       
       let decrypted = decipher.update(encrypted, 'hex', 'utf8')
       decrypted += decipher.final('utf8')
