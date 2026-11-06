@@ -216,13 +216,12 @@ async function computeMetricsForFarmer(farmerId: string): Promise<{ breakdown: M
     where: {
       items: { some: { product: { farmerId } } },
     },
-    include: { items: { include: { product: { select: { farmerId: true } } } }, customer: { select: { id: true } } },
+    select: { customerId: true },
   })
   const purchasesByCustomer = new Map<string, number>()
   for (const o of orders) {
-    const containsFarmerProduct = o.items.some(i => i.product.farmerId === farmerId)
-    if (!containsFarmerProduct || !o.customer) continue
-    const key = o.customer.id
+    const key = o.customerId
+    if (!key) continue
     purchasesByCustomer.set(key, (purchasesByCustomer.get(key) || 0) + 1)
   }
   const customers = Array.from(purchasesByCustomer.values())
