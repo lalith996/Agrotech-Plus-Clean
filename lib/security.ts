@@ -299,7 +299,7 @@ export class DataEncryption {
   // Encrypt sensitive data
   static encrypt(text: string): string {
     const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipher(this.ALGORITHM, this.KEY)
+    const cipher = crypto.createCipheriv(this.ALGORITHM, this.KEY, iv)
     
     let encrypted = cipher.update(text, 'utf8', 'hex')
     encrypted += cipher.final('hex')
@@ -317,14 +317,28 @@ export class DataEncryption {
       const iv = Buffer.from(ivHex, 'hex')
       const authTag = Buffer.from(authTagHex, 'hex')
       
-      const decipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, this.KEY, iv)
       decipher.setAuthTag(authTag)
       
       let decrypted = decipher.update(encrypted, 'hex', 'utf8')
       decrypted += decipher.final('utf8')
       
       return decrypted
-    } catch {
+    } catch (e) {
+      // Fallback for legacy data encrypted with createCipher (if available in older Node.js versions)
+      try {
+        const [ivHex, authTagHex, encrypted] = encryptedText.split(':')
+        const authTag = Buffer.from(authTagHex, 'hex')
+
+        // @ts-ignore - Fallback for legacy data
+        if (typeof crypto.createDecipher === 'function') {
+          // @ts-ignore
+          const decipher = crypto.createDecipher(this.ALGORITHM, this.KEY)
+          decipher.setAuthTag(authTag)
+          return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8')
+        }
+      } catch {}
+
       throw new Error('Failed to decrypt data')
     }
   }
