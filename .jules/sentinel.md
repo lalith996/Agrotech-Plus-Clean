@@ -1,0 +1,4 @@
+## 2025-02-27 - Replace Deprecated Insecure Crypto Algorithms
+**Vulnerability:** Deterministic initialization vectors in `crypto.createCipher` combined with AES-GCM led to nonce reuse, which breaks AES-GCM's security guarantees entirely.
+**Learning:** `crypto.createCipheriv` and `crypto.createDecipheriv` should be used instead of their non-`iv` counterparts because `createCipher` deterministically derives the IV and key from the password, leading to identical IVs for identical passwords. For authenticated modes like AES-GCM, IV reuse compromises confidentiality and authenticity.
+**Prevention:** Always use `crypto.createCipheriv` with a randomly generated, secure IV and `crypto.createDecipheriv` with the corresponding IV. Additionally, for legacy data decryption compatibility during migration, a fallback to `crypto.createDecipher` using a `try...catch` block should be implemented.
