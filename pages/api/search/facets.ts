@@ -174,8 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const maxPrice = priceStats._max.basePrice || 100;
         const priceRangeSize = Math.ceil((maxPrice - minPrice) / 5);
 
-        const priceRanges = [];
-        for (let i = 0; i < 5; i++) {
+        const priceRangesPromises = Array.from({ length: 5 }).map(async (_, i) => {
           const rangeMin = minPrice + i * priceRangeSize;
           const rangeMax = i === 4 ? maxPrice : minPrice + (i + 1) * priceRangeSize;
           
@@ -191,14 +190,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
 
           if (count > 0) {
-            priceRanges.push({
+            return {
               range: `${rangeMin}-${rangeMax}`,
               min: rangeMin,
               max: rangeMax,
               count
-            });
+            };
           }
-        }
+          return null;
+        });
+
+        const resolvedPriceRanges = await Promise.all(priceRangesPromises);
+        const priceRanges = resolvedPriceRanges.filter((r): r is NonNullable<typeof r> => r !== null);
 
         return {
           categories: categories.map(cat => ({
