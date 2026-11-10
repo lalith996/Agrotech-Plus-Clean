@@ -148,7 +148,7 @@ export default async function handler(
       const orderItems = [];
 
       // Optimize: Fetch all products in a single query (batching) to avoid N+1 problem
-      const productIds = items.map((item: any) => item.productId);
+      const productIds = items.map((item: { productId: string }) => item.productId);
       const products = await prisma.product.findMany({
         where: { id: { in: productIds } },
       });
