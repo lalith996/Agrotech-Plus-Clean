@@ -211,6 +211,7 @@ export function Footer() {
                 href="https://facebook.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Visit our Facebook page"
                 className="p-2 rounded-full bg-gray-100 hover:bg-[#00B207] hover:text-white transition-colors"
               >
                 <Facebook className="w-5 h-5" />
@@ -219,6 +220,7 @@ export function Footer() {
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Visit our Instagram page"
                 className="p-2 rounded-full bg-gray-100 hover:bg-[#00B207] hover:text-white transition-colors"
               >
                 <Instagram className="w-5 h-5" />
@@ -227,6 +229,7 @@ export function Footer() {
                 href="https://twitter.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Visit our Twitter page"
                 className="p-2 rounded-full bg-gray-100 hover:bg-[#00B207] hover:text-white transition-colors"
               >
                 <Twitter className="w-5 h-5" />
