@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Optimize N+1 query in order creation
+**Learning:** Found an N+1 query bottleneck in `pages/api/orders/index.ts` during order creation. When processing order items, a separate `prisma.product.findUnique` query was made for every individual item. This can cause significant performance degradation when placing orders with multiple items.
+**Action:** When inserting multiple items or processing lists that require entity validation, always fetch the entities in a single batched query using the `in` operator (e.g. `where: { id: { in: ids } }`) instead of querying them in a loop.
