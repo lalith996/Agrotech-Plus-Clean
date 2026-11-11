@@ -269,9 +269,21 @@ async function computePerformanceForFarmer(farmerId: string): Promise<FarmerPerf
 async function computeAllFarmers(topN?: number, tierFilter?: string, segmentation?: SegmentationMode): Promise<{ results: FarmerPerformance[] }> {
   const farmers = await prisma.farmer.findMany({ select: { id: true } })
   const results: FarmerPerformance[] = []
-  for (const f of farmers) {
-    const perf = await computePerformanceForFarmer(f.id)
-    results.push(perf)
+
+  // ⚡ Bolt Performance Optimization:
+  // Chunked Promise.all to solve sequential N+1 bottleneck
+  // 💡 What: Processes farmers concurrently in chunks instead of sequentially.
+  // 🎯 Why: Previously, N farmers * 4 DB queries were executed sequentially in a `for...of` loop,
+  // severely bottlenecking response time. This chunking parallelizes fetches while
+  // preventing connection pool exhaustion (unbounded concurrency).
+  // 📊 Impact: Response time significantly reduced (almost by factor of chunk size).
+  const CHUNK_SIZE = 10
+  for (let i = 0; i < farmers.length; i += CHUNK_SIZE) {
+    const chunk = farmers.slice(i, i + CHUNK_SIZE)
+    const chunkResults = await Promise.all(
+      chunk.map((f) => computePerformanceForFarmer(f.id))
+    )
+    results.push(...chunkResults)
   }
   // Rank by score
   results.sort((a, b) => b.performance_score - a.performance_score)
